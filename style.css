@@ -392,22 +392,175 @@ video {
   margin-top: 10px;
 }
 
-#graph {
+/* #graph {
   width: 100%;
   margin-top: 10px;
   background: #0f172a;
   border-radius: 10px;
-}
+} */
 
-.p {
-  color: red;
-}
 
 #video {
   display: none;
 }
 
 
-#breathBtn {
-  background-color: #16a34a;
+/* ROOT SCOPE */
+#heartApp {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #e5e5e7;
 }
+
+/* LAYOUT */
+#heartApp .content {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+/* CARD */
+#heartApp .card {
+  width: 100%;
+  max-width: 500px;
+  padding: 20px;
+  border-radius: 20px;
+  background: #111113;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  text-align: center;
+}
+
+/* TITLE */
+#heartApp h2 {
+  margin-bottom: 10px;
+  font-weight: 600;
+}
+
+/* TEXT */
+#heartApp .hint {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+#heartApp .warning {
+  font-size: 13px;
+  color: #ff9f0a;
+  margin-bottom: 10px;
+}
+
+/* VIDEO */
+#heartApp video {
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 10px;
+  background: black;
+}
+
+/* GRAPH */
+#heartApp canvas#graph {
+  width: 100%;
+  margin-top: 15px;
+  border-radius: 12px;
+  background: linear-gradient(to bottom, #0a0a0a, #050505);
+}
+
+/* BUTTON */
+#heartApp button {
+  margin-top: 15px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: #ff3b30;
+  color: white;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+/* STATUS TEXT */
+#heartApp #status {
+  margin-top: 10px;
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+#heartApp #quality {
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+/* RESULT */
+#heartApp #bpmResult {
+  font-size: 26px;
+  margin-top: 12px;
+  font-weight: 600;
+}
+
+#breathApp {
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #e5e5e7;
+}
+
+#breathApp .breath-container {
+  max-width: 500px;
+  margin: auto;
+  padding: 20px;
+  border-radius: 20px;
+  background: #111113;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  text-align: center;
+}
+
+#breathApp button {
+  background: #0a84ff;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  margin-bottom: 15px;
+  cursor: pointer;
+}
+
+#breathApp input[type="range"] {
+  width: 100%;
+  margin: 10px 0;
+}
+
+#breathApp canvas {
+  margin-top: 20px;
+  border-radius: 12px;
+  background: linear-gradient(to bottom, #0a0a0a, #050505);
+}
+
+#breathApp #breathLabel {
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+#breathApp #breathStatus {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+#breathApp #breathResult {
+  margin-top: 10px;
+  font-size: 22px;
+}
+
+#breathApp * {
+  box-sizing: border-box;
+}
+
+#breathApp canvas#breathGraph {
+  width: 100%;
+  margin-top: 15px;
+  border-radius: 12px;
+  background: linear-gradient(to bottom, #0a0a0a, #050505);
+}
+
+
+
+
+
+
