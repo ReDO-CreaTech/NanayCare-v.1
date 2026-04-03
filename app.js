@@ -1,3 +1,10 @@
+document.addEventListener("contextmenu", (e) => {
+  e.preventDefault();
+});
+
+
+
+
 // SAFETY FALLBACKS
 if (typeof window.__ === "undefined") {
   window.__ = function (key) { return key; };
