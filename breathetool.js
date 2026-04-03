@@ -74,20 +74,19 @@ function isValidBreathSignal(value) {
    SIGNAL (BREATH ENERGY)
 ========================= */
 function getBreathSignal() {
-  analyser.getByteFrequencyData(dataArray);
+  analyser.getByteTimeDomainData(dataArray);
 
   let sum = 0;
 
-  const LIMIT = Math.floor(dataArray.length * 0.15); // even narrower band
-
-  for (let i = 0; i < LIMIT; i++) {
-    sum += dataArray[i];
+  for (let i = 0; i < dataArray.length; i++) {
+    let v = (dataArray[i] - 128) / 128; // normalize [-1..1]
+    sum += Math.abs(v);
   }
 
-  let avg = sum / LIMIT;
+  let avg = sum / dataArray.length;
 
-  // 🔥 SENSITIVITY CONTROL
-  return avg / BREATH_SENSITIVITY;
+  // amplify usable breathing signal
+  return avg * BREATH_SENSITIVITY;
 }
 
 /* =========================
