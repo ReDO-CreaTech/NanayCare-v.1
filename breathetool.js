@@ -65,8 +65,7 @@ function stopMic() {
 
 
 function isValidBreathSignal(value) {
-  const NOISE_FLOOR = 18; // ignore background room noise
-  return value > NOISE_FLOOR;
+  return value > 0.015; // REALISTIC breathing threshold
 }
 
 
@@ -122,7 +121,7 @@ function detectBreaths() {
       breathSmooth[i] > breathSmooth[i + 1] &&
       breathSmooth[i] > breathSmooth[i + 2];
 
-    const threshold = 20; // 👈 IMPORTANT noise filter
+    const threshold = 0.03; // 👈 IMPORTANT noise filter
 
     if (isPeak && breathSmooth[i] > threshold) {
       peaks.push(breathTime[i]);
