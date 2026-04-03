@@ -9,7 +9,7 @@ const childFlow = [
   // 🫁 COUGH / BREATHING
   { id:"cough", type:"boolean", label:{en:"Cough?", tl:"May ubo?"}},
   { id:"coughDays", type:"number", label:{en:"Cough for how many days?", tl:"Ilang araw ang ubo?"}, when: (p) => p.cough },
-  { id:"respiratoryRate", type:"number", label:{en:"Breaths per minute (Use the Green Button below, Place your phone near child's chest for 15sec.)", tl:"Paghinga kada minuto"}, when: (p) => p.cough },
+  { id:"respiratoryRate", type:"number", label:{en:"Breaths per minute (Use the Green Button below, Place your phone near child's chest for 30sec.)", tl:"Paghinga kada minuto"}, when: (p) => p.cough },
 //   {
 //   id: "respiratoryRate",
 //   type: "breathingTool",
