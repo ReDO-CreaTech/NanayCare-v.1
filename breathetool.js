@@ -15,10 +15,14 @@ let startTime = 0;
 
 const BREATH_DURATION = 25000;
 
+// ✅ GLOBAL BASELINE (FIXED)
+let baseline = 0;
+let baselineCount = 0;
+let calibrated = false;
+
 const breathBtn = document.getElementById("breathBtn");
 const breathResult = document.getElementById("breathResult");
 const breathStatus = document.getElementById("breathStatus");
-const breathLabel = document.getElementById("breathLabel");
 
 const breathGraph = document.getElementById("breathGraph");
 const btx = breathGraph.getContext("2d");
@@ -27,14 +31,19 @@ const slider = document.getElementById("sensSlider");
 
 slider.oninput = (e) => {
   BREATH_SENSITIVITY = parseFloat(e.target.value);
-  breathStatus.innerText = `Sensitivity: ${BREATH_SENSITIVITY}`;
 };
 
 /* =========================
    MIC
 ========================= */
 async function startMic() {
-  stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  stream = await navigator.mediaDevices.getUserMedia({
+    audio: {
+      echoCancellation: false,
+      noiseSuppression: false,
+      autoGainControl: false
+    }
+  });
 
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -64,12 +73,12 @@ function getBreathSignal() {
     sum += v * v;
   }
 
-  let rms = Math.sqrt(sum / dataArray.length);
-  return rms * BREATH_SENSITIVITY;
+  return Math.sqrt(sum / dataArray.length) * BREATH_SENSITIVITY;
 }
 
 function isValidBreathSignal(v) {
-  return v > baseline * 1.2;
+  if (!calibrated) return true;
+  return v > baseline * 1.15;
 }
 
 /* =========================
@@ -96,15 +105,12 @@ function smoothBreath(v) {
 function detectBreaths() {
   let peaks = [];
 
-  for (let i = 3; i < breathSmooth.length - 3; i++) {
-
+  for (let i = 2; i < breathSmooth.length - 2; i++) {
     const isPeak =
       breathSmooth[i] > breathSmooth[i - 1] &&
       breathSmooth[i] > breathSmooth[i + 1];
 
-    const threshold = 0.005;
-
-    if (isPeak && breathSmooth[i] > threshold) {
+    if (isPeak && breathSmooth[i] > baseline * 1.2) {
       peaks.push(breathTime[i]);
     }
   }
@@ -119,36 +125,22 @@ function detectBreaths() {
   const avg = intervals.reduce((a,b)=>a+b,0) / intervals.length;
   const bpm = Math.round(60000 / avg);
 
-  if (bpm < 10 || bpm > 80) return null;
+  if (bpm < 8 || bpm > 60) return null;
 
   return bpm;
-}
-
-/* =========================
-   QUALITY
-========================= */
-function detectBreathQuality(v) {
-  if (v < 0.003) return "No signal";
-  if (v < 0.01) return "Weak (move closer)";
-  return "Stable";
-}
-
-function classifyBreathing(bpm) {
-  if (!bpm) return "⚠️ Unable to classify";
-
-  if (bpm < 10) return "⚠️ Abnormally Low";
-  if (bpm <= 20) return "✅ Normal (WHO)";
-  if (bpm <= 30) return "⚠️ Elevated";
-  return "🚨 High (Possible Respiratory Distress)";
 }
 
 /* =========================
    GRAPH
 ========================= */
 function drawGraph() {
-  btx.clearRect(0,0,breathGraph.width, breathGraph.height);
+  const w = breathGraph.width;
+  const h = breathGraph.height;
 
-  const slice = breathSmooth.slice(-100);
+  btx.fillStyle = "rgba(0,0,0,0.2)";
+  btx.fillRect(0,0,w,h);
+
+  const slice = breathSmooth.slice(-120);
   if (slice.length < 2) return;
 
   const max = Math.max(...slice);
@@ -156,17 +148,26 @@ function drawGraph() {
 
   btx.beginPath();
 
-  slice.forEach((val,i)=>{
-    const x = (i / slice.length) * breathGraph.width;
-    const y = breathGraph.height - ((val - min) / (max - min + 0.0001)) * breathGraph.height;
+  for (let i = 0; i < slice.length - 1; i++) {
+    const x1 = (i / slice.length) * w;
+    const y1 = h - ((slice[i] - min) / (max - min + 0.0001)) * h;
 
-    if(i===0) btx.moveTo(x,y);
-    else btx.lineTo(x,y);
-  });
+    const x2 = ((i + 1) / slice.length) * w;
+    const y2 = h - ((slice[i+1] - min) / (max - min + 0.0001)) * h;
 
-  btx.strokeStyle = "#3b82f6";
+    const xc = (x1 + x2) / 2;
+    const yc = (y1 + y2) / 2;
+
+    if (i === 0) btx.moveTo(x1, y1);
+    btx.quadraticCurveTo(x1, y1, xc, yc);
+  }
+
+  btx.strokeStyle = "#0a84ff";
   btx.lineWidth = 2;
+  btx.shadowColor = "#0a84ff";
+  btx.shadowBlur = 10;
   btx.stroke();
+  btx.shadowBlur = 0;
 }
 
 /* =========================
@@ -176,17 +177,12 @@ function stop(final) {
   breathing = false;
   stopMic();
 
-  breathStatus.innerText = "Measurement complete";
+  breathStatus.innerText = "Done";
 
   if (final) {
-    const label = classifyBreathing(final);
-
-    breathResult.innerHTML = `
-      🌬️ <b>${final}</b> breaths/min <br>
-      <span style="font-size:18px">${label}</span>
-    `;
+    breathResult.innerHTML = `🌬️ ${final} breaths/min`;
   } else {
-    breathResult.innerText = "⚠️ Unable to get stable reading";
+    breathResult.innerText = "⚠️ No stable reading";
   }
 
   breathBtn.innerText = "Start";
@@ -196,32 +192,33 @@ function stop(final) {
    LOOP
 ========================= */
 function loop() {
-let baseline = 0;
-let baselineCount = 0;
-
-  if (baselineCount < 30) {
-  baseline += signal;
-  baselineCount++;
-  return requestAnimationFrame(loop);
-}
-
-baseline = baseline / baselineCount;
-  
   if (!breathing) return;
 
   const now = Date.now();
+  const signal = getBreathSignal();
+
+  // ✅ CALIBRATION PHASE
+  if (!calibrated) {
+    baseline += signal;
+    baselineCount++;
+
+    breathStatus.innerText = "Calibrating... stay still";
+
+    if (baselineCount > 40) {
+      baseline /= baselineCount;
+      calibrated = true;
+    }
+
+    return requestAnimationFrame(loop);
+  }
 
   if (now - startTime > BREATH_DURATION) {
     stop(detectBreaths());
     return;
   }
 
-  const signal = getBreathSignal();
-
   if (!isValidBreathSignal(signal)) {
-    breathStatus.innerText = "No signal";
-    breathSmooth.push(0);
-    breathTime.push(now);
+    breathStatus.innerText = "Move closer to mic";
     requestAnimationFrame(loop);
     return;
   }
@@ -235,8 +232,7 @@ baseline = baseline / baselineCount;
     breathTime.shift();
   }
 
-  breathStatus.innerText = detectBreathQuality(smooth);
-  breathStatus.innerText = "Hold phone close to mouth and breathe slowly";
+  breathStatus.innerText = "Breathing detected";
 
   const bpm = detectBreaths();
   if (bpm) breathResult.innerText = `🌬️ ${bpm} breaths/min`;
@@ -255,6 +251,10 @@ breathBtn.onclick = async () => {
   breathSmooth.length = 0;
   breathTime.length = 0;
 
+  baseline = 0;
+  baselineCount = 0;
+  calibrated = false;
+
   breathResult.innerText = "";
   breathStatus.innerText = "";
 
@@ -265,7 +265,7 @@ breathBtn.onclick = async () => {
 
   await startMic();
 
-  setTimeout(loop, 500);
+  setTimeout(loop, 300);
 };
 
 });
