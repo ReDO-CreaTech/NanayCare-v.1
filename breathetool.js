@@ -1,8 +1,7 @@
-
-
 document.addEventListener("DOMContentLoaded", () => {
 
-const audioContext = null;
+let BREATH_SENSITIVITY = 8;
+
 let stream = null;
 let analyser = null;
 let dataArray = [];
@@ -14,41 +13,33 @@ const breathTime = [];
 let breathing = false;
 let startTime = 0;
 
-const BREATH_DURATION = 12000; // same as your BPM tool (12s)
+const BREATH_DURATION = 12000;
 
 const breathBtn = document.getElementById("breathBtn");
 const breathResult = document.getElementById("breathResult");
 const breathStatus = document.getElementById("breathStatus");
-const breathQuality = document.getElementById("breathQuality");
+const breathLabel = document.getElementById("breathLabel");
 
 const breathGraph = document.getElementById("breathGraph");
-const btx = breathGraph?.getContext("2d");
-
-
-
+const btx = breathGraph.getContext("2d");
 
 const slider = document.getElementById("sensSlider");
 
-if (slider) {
-  slider.oninput = (e) => {
-    BREATH_SENSITIVITY = parseFloat(e.target.value);
-    breathStatus.innerText = `Sensitivity: ${BREATH_SENSITIVITY}`;
-  };
-}
+slider.oninput = (e) => {
+  BREATH_SENSITIVITY = parseFloat(e.target.value);
+  breathStatus.innerText = `Sensitivity: ${BREATH_SENSITIVITY}`;
+};
 
 /* =========================
-   MICROPHONE CAMERA START
+   MIC
 ========================= */
 async function startMic() {
-  stream = await navigator.mediaDevices.getUserMedia({
-    audio: true
-  });
+  stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
-  const AudioCtx = window.AudioContext || window.webkitAudioContext;
-  const ctx = new AudioCtx();
+  const ctx = new (window.AudioContext || window.webkitAudioContext)();
 
   analyser = ctx.createAnalyser();
-  analyser.fftSize = 512;
+  analyser.fftSize = 1024;
 
   const source = ctx.createMediaStreamSource(stream);
   source.connect(analyser);
@@ -56,21 +47,12 @@ async function startMic() {
   dataArray = new Uint8Array(analyser.frequencyBinCount);
 }
 
-/* STOP MIC */
 function stopMic() {
-  if (stream) {
-    stream.getTracks().forEach(t => t.stop());
-  }
+  if (stream) stream.getTracks().forEach(t => t.stop());
 }
-
-
-function isValidBreathSignal(value) {
-  return value > 0.015; // REALISTIC breathing threshold
-}
-
 
 /* =========================
-   SIGNAL (BREATH ENERGY)
+   SIGNAL
 ========================= */
 function getBreathSignal() {
   analyser.getByteTimeDomainData(dataArray);
@@ -78,18 +60,20 @@ function getBreathSignal() {
   let sum = 0;
 
   for (let i = 0; i < dataArray.length; i++) {
-    let v = (dataArray[i] - 128) / 128; // normalize [-1..1]
-    sum += Math.abs(v);
+    let v = (dataArray[i] - 128) / 128;
+    sum += v * v;
   }
 
-  let avg = sum / dataArray.length;
+  let rms = Math.sqrt(sum / dataArray.length);
+  return rms * BREATH_SENSITIVITY;
+}
 
-  // amplify usable breathing signal
-  return avg * BREATH_SENSITIVITY;
+function isValidBreathSignal(v) {
+  return v > 0.002;
 }
 
 /* =========================
-   SMOOTHING (same style)
+   SMOOTH
 ========================= */
 function smoothBreath(v) {
   breathRaw.push(v);
@@ -102,13 +86,12 @@ function smoothBreath(v) {
   }
 
   avg /= 5;
-
   breathSmooth.push(avg);
   return avg;
 }
 
 /* =========================
-   BREATH PEAK DETECTION
+   PEAK DETECTION
 ========================= */
 function detectBreaths() {
   let peaks = [];
@@ -121,7 +104,7 @@ function detectBreaths() {
       breathSmooth[i] > breathSmooth[i + 1] &&
       breathSmooth[i] > breathSmooth[i + 2];
 
-    const threshold = 0.03; // 👈 IMPORTANT noise filter
+    const threshold = 0.008;
 
     if (isPeak && breathSmooth[i] > threshold) {
       peaks.push(breathTime[i]);
@@ -131,45 +114,41 @@ function detectBreaths() {
   if (peaks.length < 2) return null;
 
   let intervals = [];
-
   for (let i = 1; i < peaks.length; i++) {
     intervals.push(peaks[i] - peaks[i - 1]);
   }
 
-  const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-
+  const avg = intervals.reduce((a,b)=>a+b,0) / intervals.length;
   const bpm = Math.round(60000 / avg);
 
-  // 🔥 SAFETY CLAMP (VERY IMPORTANT FOR CHILDREN)
   if (bpm < 10 || bpm > 80) return null;
 
   return bpm;
 }
 
 /* =========================
-   SIMPLE QUALITY CHECK
+   QUALITY
 ========================= */
-// function detectBreathQuality(v) {
-//   if (v < 10) return "No signal";
-//   if (v < 25) return "Weak signal";
-//   return "Good signal";
-// }
-
-
-
 function detectBreathQuality(v) {
-  if (v < 15) return "No signal";
-  if (v < 30) return "Unstable (move closer)";
+  if (v < 0.003) return "No signal";
+  if (v < 0.01) return "Weak (move closer)";
   return "Stable";
 }
 
-/* =========================
-   GRAPH (same style as yours)
-========================= */
-function drawBreathGraph() {
-  if (!btx) return;
+function classifyBreathing(bpm) {
+  if (!bpm) return "⚠️ Unable to classify";
 
-  btx.clearRect(0, 0, breathGraph.width, breathGraph.height);
+  if (bpm < 10) return "⚠️ Abnormally Low";
+  if (bpm <= 20) return "✅ Normal (WHO)";
+  if (bpm <= 30) return "⚠️ Elevated";
+  return "🚨 High (Possible Respiratory Distress)";
+}
+
+/* =========================
+   GRAPH
+========================= */
+function drawGraph() {
+  btx.clearRect(0,0,breathGraph.width, breathGraph.height);
 
   const slice = breathSmooth.slice(-100);
   if (slice.length < 2) return;
@@ -179,13 +158,12 @@ function drawBreathGraph() {
 
   btx.beginPath();
 
-  slice.forEach((val, i) => {
+  slice.forEach((val,i)=>{
     const x = (i / slice.length) * breathGraph.width;
-    const y =
-      breathGraph.height - ((val - min) / (max - min + 0.0001)) * breathGraph.height;
+    const y = breathGraph.height - ((val - min) / (max - min + 0.0001)) * breathGraph.height;
 
-    if (i === 0) btx.moveTo(x, y);
-    else btx.lineTo(x, y);
+    if(i===0) btx.moveTo(x,y);
+    else btx.lineTo(x,y);
   });
 
   btx.strokeStyle = "#3b82f6";
@@ -196,52 +174,50 @@ function drawBreathGraph() {
 /* =========================
    STOP
 ========================= */
-function stopBreathing(final) {
+function stop(final) {
   breathing = false;
   stopMic();
 
   breathStatus.innerText = "Measurement complete";
 
   if (final) {
-    breathResult.innerText = `🌬️ Final: ${final} breaths/min`;
+    const label = classifyBreathing(final);
+
+    breathResult.innerHTML = `
+      🌬️ <b>${final}</b> breaths/min <br>
+      <span style="font-size:18px">${label}</span>
+    `;
   } else {
     breathResult.innerText = "⚠️ Unable to get stable reading";
   }
 
-  breathBtn.innerText = "Read Again";
-
-  if (window.currentPatient) {
-    window.currentPatient.respiratoryRate = final;
-  }
+  breathBtn.innerText = "Start";
 }
 
 /* =========================
    LOOP
 ========================= */
-function processBreathing() {
+function loop() {
   if (!breathing) return;
 
   const now = Date.now();
 
   if (now - startTime > BREATH_DURATION) {
-    const final = detectBreaths();
-    stopBreathing(final);
+    stop(detectBreaths());
     return;
   }
 
-const signal = getBreathSignal();
+  const signal = getBreathSignal();
 
-if (!isValidBreathSignal(signal)) {
-  breathStatus.innerText = "No clear breathing signal";
+  if (!isValidBreathSignal(signal)) {
+    breathStatus.innerText = "No signal";
+    breathSmooth.push(0);
+    breathTime.push(now);
+    requestAnimationFrame(loop);
+    return;
+  }
 
-  breathTime.push(Date.now());
-  breathSmooth.push(0);
-
-  requestAnimationFrame(processBreathing);
-  return;
-}
-const smooth = smoothBreath(signal);
-
+  const smooth = smoothBreath(signal);
   breathTime.push(now);
 
   if (breathSmooth.length > 300) {
@@ -255,15 +231,16 @@ const smooth = smoothBreath(signal);
   const bpm = detectBreaths();
   if (bpm) breathResult.innerText = `🌬️ ${bpm} breaths/min`;
 
-  drawBreathGraph();
+  drawGraph();
 
-  requestAnimationFrame(processBreathing);
+  requestAnimationFrame(loop);
 }
 
 /* =========================
-   BUTTON (same pattern as yours)
+   BUTTON
 ========================= */
 breathBtn.onclick = async () => {
+
   breathRaw.length = 0;
   breathSmooth.length = 0;
   breathTime.length = 0;
@@ -278,9 +255,7 @@ breathBtn.onclick = async () => {
 
   await startMic();
 
-  setTimeout(() => {
-    processBreathing();
-  }, 800);
+  setTimeout(loop, 500);
 };
 
 });
