@@ -10,7 +10,7 @@ const infantFlow = [
   { id:"feelsHot", type:"boolean", label:{en:"Does the infant feel hot?"}, when: (p) => !p.temperature},
 
   // BREATHING
-  { id:"respiratoryRate", type:"number", label:{en:"Breaths per minute (Use the Green Button below, Place your phone near baby's chest for 15sec.)"}},
+  { id:"respiratoryRate", type:"number", label:{en:"Breaths per minute (Use the Green Button below, Place your phone near baby's chest for 30sec.)"}},
   { id:"severeChestIndrawing", type:"boolean", label:{en:"Severe chest indrawing?"}},
 
   // LOCAL INFECTIONS
@@ -72,7 +72,7 @@ const infantFlow = [
   when:(p)=>p.otherFoods
 },
 
-{ id:"lowWeight", type:"boolean", label:{en:"Low weight for age?"}},
+{ id:"lowWeight", type:"boolean", label:{en:"Low weight for age? Please check the chart below"}},
 
 { id:"thrush", type:"boolean", label:{en:"White patches in mouth (thrush)?"}},
 
