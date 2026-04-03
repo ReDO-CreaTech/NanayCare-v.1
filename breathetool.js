@@ -1,4 +1,5 @@
 
+
 document.addEventListener("DOMContentLoaded", () => {
 
 const audioContext = null;
@@ -22,6 +23,18 @@ const breathQuality = document.getElementById("breathQuality");
 
 const breathGraph = document.getElementById("breathGraph");
 const btx = breathGraph?.getContext("2d");
+
+
+
+
+const slider = document.getElementById("sensSlider");
+
+if (slider) {
+  slider.oninput = (e) => {
+    BREATH_SENSITIVITY = parseFloat(e.target.value);
+    breathStatus.innerText = `Sensitivity: ${BREATH_SENSITIVITY}`;
+  };
+}
 
 /* =========================
    MICROPHONE CAMERA START
@@ -50,6 +63,13 @@ function stopMic() {
   }
 }
 
+
+function isValidBreathSignal(value) {
+  const NOISE_FLOOR = 18; // ignore background room noise
+  return value > NOISE_FLOOR;
+}
+
+
 /* =========================
    SIGNAL (BREATH ENERGY)
 ========================= */
@@ -58,14 +78,16 @@ function getBreathSignal() {
 
   let sum = 0;
 
-  // ONLY low frequencies (breathing range)
-  const LIMIT = Math.floor(dataArray.length * 0.2);
+  const LIMIT = Math.floor(dataArray.length * 0.15); // even narrower band
 
   for (let i = 0; i < LIMIT; i++) {
     sum += dataArray[i];
   }
 
-  return sum / LIMIT;
+  let avg = sum / LIMIT;
+
+  // 🔥 SENSITIVITY CONTROL
+  return avg / BREATH_SENSITIVITY;
 }
 
 /* =========================
@@ -209,8 +231,18 @@ function processBreathing() {
     return;
   }
 
-  const signal = getBreathSignal();
-  const smooth = smoothBreath(signal);
+const signal = getBreathSignal();
+
+if (!isValidBreathSignal(signal)) {
+  breathStatus.innerText = "No clear breathing signal";
+
+  breathTime.push(Date.now());
+  breathSmooth.push(0);
+
+  requestAnimationFrame(processBreathing);
+  return;
+}
+const smooth = smoothBreath(signal);
 
   breathTime.push(now);
 
