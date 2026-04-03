@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- PWA / MOBILE -->
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="IMCI Triage">
+
+  <!-- PWA MANIFEST -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- ICONS (ADD YOUR ICON FILES) -->
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <title>IMCI Triage</title>
+
+  <!-- STYLES -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+
+<main class="app-container">
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo">Nanay<span>Care v.1</span></div>
+    <nav>
+      <!-- <a href="#">Home</a>
+      <a href="#">Guide</a>
+      <a href="#">About</a> -->
+    </nav>
+  </header>
+
+  <!-- CONTENT -->
+  <section class="content">
+
+    <div class="header-card">
+      <h1>Child Health Assistant (Prototype)</h1>
+      <p>For testing and evaluation purposes only</p>
+    </div>
+
+    <button class="fab" onclick="goToMapDirect()">
+  📍
+  <span class="fab-label">Find nearest hospital</span>
+</button>
+
+
+    <div id="app">
+      <div id="screen">
+        <p>Loading...</p>
+      </div>
+      <div id="records"></div>
+
+
+
+<button id="breathBtn">Start Breathing Test</button>
+
+<p id="breathStatus"></p>
+<h2 id="breathResult"></h2>
+
+<canvas id="breathGraph" width="300" height="120"></canvas>
+
+    </div>
+
+  
+
+
+  </section>
+
+
+
+
+  <div class="content">
+  <div class="card">
+    <h2>Heart Rate (Prototype)</h2>
+
+    <p>Cover camera with finger. Stay still.</p>
+    <p class="p"><strong>This is a prototype and not a medical device. Results may be inaccurate.</strong></p>
+
+    <video id="video" autoplay playsinline></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <!-- LIVE GRAPH -->
+    <canvas id="graph" height="120"></canvas>
+
+    <button id="startBtn">Start Measurement</button>
+
+    <div id="status"></div>
+    <div id="quality"></div>
+    <div id="bpmResult" style="font-size:22px; margin-top:10px;"></div>
+  </div>
+</div>
+
+</main>
+
+
+<div id="disclaimerModal" class="disclaimer-modal">
+  <div class="disclaimer-box">
+    <h2>Medical Disclaimer</h2>
+
+    <p>
+      The following information provides general guidance on pediatric medication dosing and is intended for informational purposes only. It does not replace professional medical advice, diagnosis, or treatment.
+    </p>
+
+    <p>
+      Medication dosages for children are typically calculated by healthcare professionals based on body weight (mg/kg), the type of infection, and its severity. Doses are often divided into multiple administrations per day. Special considerations apply to infants under 3 months of age due to developing kidney function.
+    </p>
+
+    <p>
+      In more severe or resistant infections, higher dosing regimens may be required under medical supervision. Accurate dosing must always be determined by a qualified healthcare provider.
+    </p>
+
+    <p>
+      <strong>Do not self-medicate or adjust dosages.</strong> Always consult a licensed pediatrician before administering any medication to a child.
+    </p>
+
+    <label class="confirm">
+  <input type="checkbox" id="confirmCheck" />
+  <span>I understand this does not replace medical advice.</span>
+</label>
+
+<button id="acceptDisclaimer" disabled>I Accept</button>
+  </div>
+</div>
+
+
+
+
+
+
+<script type="module">
+  import { renderPatientList } from "../Records/ui.js";
+
+  renderPatientList();
+</script>
+
+
+  <!-- NO JS FALLBACK -->
+  <noscript>
+    <div style="padding:20px; text-align:center; color:red;">
+      This app requires JavaScript to run.
+    </div>
+  </noscript>
+
+  <!-- CORE SYSTEM -->
+  <script src="i18n.js" defer></script>
+  <script src="db.js" defer></script>
+
+  <!-- ENGINE -->
+  <script src="engine.js" defer></script>
+
+  <!-- FLOWS -->
+  <script src="flows/infant.js" defer></script>
+  <script src="flows/child.js" defer></script>
+  <script src="flows/treatmentflow.js" defer></script>
+  <script src="Records/db.js"></script>
+  <script src="Records/records.js"></script>
+  <script src="Records/list.js"></script>
+  <script src="Records/qr.js"></script>
+  <script src="Records/schema.js"></script>
+  <script src="Records/ui.js"></script>
+
+  <script src="bpm.js"></script>
+  <script src="breathetool.js"></script>
+
+
+  <!-- APP (LAST) -->
+  <script type="module" src="app.js" defer></script>
+
+  <!-- SERVICE WORKER -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => {
+            console.log("SW registered");
+
+            // 🔄 auto update handling
+            reg.onupdatefound = () => {
+              const newWorker = reg.installing;
+              newWorker.onstatechange = () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log("New version available");
+                }
+              };
+            };
+          })
+          .catch(err => console.log("SW failed", err));
+      });
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+</body>
+</html>
