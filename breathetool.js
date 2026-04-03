@@ -13,7 +13,7 @@ const breathTime = [];
 let breathing = false;
 let startTime = 0;
 
-const BREATH_DURATION = 12000;
+const BREATH_DURATION = 25000;
 
 const breathBtn = document.getElementById("breathBtn");
 const breathResult = document.getElementById("breathResult");
@@ -69,7 +69,7 @@ function getBreathSignal() {
 }
 
 function isValidBreathSignal(v) {
-  return v > 0.002;
+  return v > baseline * 1.2;
 }
 
 /* =========================
@@ -78,7 +78,7 @@ function isValidBreathSignal(v) {
 function smoothBreath(v) {
   breathRaw.push(v);
 
-  if (breathRaw.length < 5) return v;
+  if (breathRaw.length < 8) return v;
 
   let avg = 0;
   for (let i = breathRaw.length - 5; i < breathRaw.length; i++) {
@@ -100,11 +100,9 @@ function detectBreaths() {
 
     const isPeak =
       breathSmooth[i] > breathSmooth[i - 1] &&
-      breathSmooth[i] > breathSmooth[i - 2] &&
-      breathSmooth[i] > breathSmooth[i + 1] &&
-      breathSmooth[i] > breathSmooth[i + 2];
+      breathSmooth[i] > breathSmooth[i + 1];
 
-    const threshold = 0.008;
+    const threshold = 0.005;
 
     if (isPeak && breathSmooth[i] > threshold) {
       peaks.push(breathTime[i]);
@@ -198,6 +196,17 @@ function stop(final) {
    LOOP
 ========================= */
 function loop() {
+let baseline = 0;
+let baselineCount = 0;
+
+  if (baselineCount < 30) {
+  baseline += signal;
+  baselineCount++;
+  return requestAnimationFrame(loop);
+}
+
+baseline = baseline / baselineCount;
+  
   if (!breathing) return;
 
   const now = Date.now();
@@ -227,6 +236,7 @@ function loop() {
   }
 
   breathStatus.innerText = detectBreathQuality(smooth);
+  breathStatus.innerText = "Hold phone close to mouth and breathe slowly";
 
   const bpm = detectBreaths();
   if (bpm) breathResult.innerText = `🌬️ ${bpm} breaths/min`;
