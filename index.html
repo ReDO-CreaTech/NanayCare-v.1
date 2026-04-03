@@ -60,54 +60,52 @@
 
 
 
-<button id="breathBtn">Start Breathing Test</button>
+<div id="breathApp">
+  <div class="breath-container">
+    <button id="breathBtn">Start Breathing Test</button>
 
-<label for="sensSlider">Sensitivity</label>
+    <p id="breathLabel"></p>
 
-<input
-  type="range"
-  min="0.5"
-  max="3"
-  step="0.1"
-  id="sensSlider"
-  value="1.2"
-/>
+    <label for="sensSlider">Sensitivity</label>
+    <input type="range" min="0.5" max="3" step="0.1" id="sensSlider" value="1.2"/>
 
-<p id="breathStatus"></p>
-<h2 id="breathResult"></h2>
+    <p id="breathStatus"></p>
+    <h2 id="breathResult"></h2>
 
-<canvas id="breathGraph" width="300" height="120"></canvas>
+    <canvas id="breathGraph" width="320" height="140"></canvas>
+  </div>
+</div>
+
+
+      <div id="heartApp">
+  <div class="content">
+    <div class="card">
+      <h2>❤️ Heart Rate</h2>
+
+      <p class="hint">Cover camera with finger. Stay still.</p>
+      <p class="warning">
+        This is a prototype and not a medical device.
+      </p>
+
+      <video id="video" autoplay playsinline></video>
+      <canvas id="canvas" style="display:none;"></canvas>
+
+      <!-- Graph -->
+      <canvas id="graph" height="120"></canvas>
+
+      <button id="startBtn">Start Measurement</button>
+
+      <div id="status"></div>
+      <div id="quality"></div>
+      <div id="bpmResult"></div>
+    </div>
+  </div>
+</div>
 
     </div>
 
-  
-
 
   </section>
-
-
-
-
-  <div class="content">
-  <div class="card">
-    <h2>Heart Rate (Prototype)</h2>
-
-    <p>Cover camera with finger. Stay still.</p>
-    <p class="p"><strong>This is a prototype and not a medical device. Results may be inaccurate.</strong></p>
-
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas" style="display:none;"></canvas>
-
-    <!-- LIVE GRAPH -->
-    <canvas id="graph" height="120"></canvas>
-
-    <button id="startBtn">Start Measurement</button>
-
-    <div id="status"></div>
-    <div id="quality"></div>
-    <div id="bpmResult" style="font-size:22px; margin-top:10px;"></div>
-  </div>
-</div>
 
 </main>
 
