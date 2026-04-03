@@ -59,6 +59,30 @@
       <div id="records"></div>
 
 
+      <div class="card">
+  <h2>📊 WHO Weight-for-Age (0–5 years)</h2>
+  <p>Median weight reference (approximate WHO standard)</p>
+
+  <label for="sexTable">Select Sex:</label>
+  <select id="sexTable">
+    <option value="boy">Boy</option>
+    <option value="girl">Girl</option>
+  </select>
+
+  <div style="overflow-x:auto;">
+    <table id="whoTable" border="1" cellpadding="8" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th>Age</th>
+          <th>Weight (kg)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+
 
 <div id="breathApp">
   <div class="breath-container">
@@ -138,7 +162,63 @@
 </div>
 
 
+<script>
+const WHO_TABLE = {
+  boy: [
+    { age: "New Born", weight: 3.3 },
+    { age: "1 month", weight: 4.5 },
+    { age: "2 months", weight: 5.6 },
+    { age: "3 months", weight: 6.4 },
+    { age: "6 months", weight: 7.9 },
+    { age: "9 months", weight: 8.9 },
+    { age: "12 months (1y)", weight: 9.6 },
+    { age: "18 months", weight: 11.0 },
+    { age: "24 months (2y)", weight: 12.2 },
+    { age: "3 years", weight: 14.3 },
+    { age: "4 years", weight: 16.3 },
+    { age: "5 years", weight: 18.3 }
+  ],
+  girl: [
+    { age: "New Born", weight: 3.2 },
+    { age: "1 month", weight: 4.2 },
+    { age: "2 months", weight: 5.1 },
+    { age: "3 months", weight: 5.8 },
+    { age: "6 months", weight: 7.3 },
+    { age: "9 months", weight: 8.2 },
+    { age: "12 months (1y)", weight: 8.9 },
+    { age: "18 months", weight: 10.2 },
+    { age: "24 months (2y)", weight: 11.5 },
+    { age: "3 years", weight: 13.9 },
+    { age: "4 years", weight: 16.0 },
+    { age: "5 years", weight: 18.0 }
+  ]
+};
 
+function renderWHOTable(sex) {
+  const tbody = document.querySelector("#whoTable tbody");
+  tbody.innerHTML = "";
+
+  WHO_TABLE[sex].forEach(row => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${row.age}</td>
+      <td>${row.weight} kg</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+// init
+document.addEventListener("DOMContentLoaded", () => {
+  renderWHOTable("boy");
+
+  document.getElementById("sexTable").addEventListener("change", (e) => {
+    renderWHOTable(e.target.value);
+  });
+});
+</script>
 
 
 
