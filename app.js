@@ -804,6 +804,27 @@ window.addEventListener("load", () => {
   }
 });
 
+
+///LOGIN SCREEN
+
+function loginScreen() {
+  render(card(`
+    <h2>Select Role</h2>
+
+    <select id="role">
+      <option value="free">Family</option>
+      <option value="healthworker">Health Worker</option>
+      <option value="doctor">Doctor</option>
+    </select>
+
+    <input id="username" placeholder="Your Name">
+
+    <button data-action="login">Continue</button>
+  `));
+}
+
+
+
 // ==========================
 // INIT
 // ==========================
