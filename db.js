@@ -143,3 +143,9 @@ function startSync() {
 }
 
 
+
+window.addEventListener("load", () => {
+  startSync();
+});
+
+
