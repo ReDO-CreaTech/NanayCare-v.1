@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Nearest Facilities</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+
+  <style>
+    body { margin: 0; font-family: Arial; }
+
+    .container {
+      display: flex;
+      height: 100vh;
+    }
+
+    /* LEFT PANEL */
+    .sidebar {
+      width: 320px;
+      background: white;
+      padding: 12px;
+      overflow-y: auto;
+      border-right: 1px solid #ddd;
+    }
+
+    .sidebar input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .place {
+      padding: 10px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      cursor: pointer;
+      background: #f1f5f9;
+    }
+
+    .place:hover {
+      background: #e2e8f0;
+    }
+
+    /* MAP */
+    #map {
+      flex: 1;
+    }
+
+    /* BACK BUTTON */
+    .back-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      padding: 10px;
+      background: #0f172a;
+      color: white;
+      border: none;
+      border-radius: 8px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<button class="back-btn" onclick="history.back()">← Back</button>
+
+<div class="container">
+  <div class="sidebar">
+    <input id="search" placeholder="Search...">
+    <div id="list"></div>
+  </div>
+
+  <div id="map"></div>
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="map.js"></script>
+
+</body>
+</html>
