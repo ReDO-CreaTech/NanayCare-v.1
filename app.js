@@ -30,6 +30,10 @@ screen.addEventListener("click", async (e) => {
   const action = e.target.dataset.action;
   if (!action) return;
 
+  if (action === "medical-login") {
+  return loginScreen();
+  }
+
   try {
     if (action === "next-intake") return saveIntake();
     if (action === "records") {
