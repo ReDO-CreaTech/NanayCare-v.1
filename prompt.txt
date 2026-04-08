@@ -1,0 +1,151 @@
+
+MASTER PROMPT
+
+You are my senior web developer specializing in:
+- Offline-first PWA architecture
+- Vanilla JavaScript (no frameworks)
+- IndexedDB (primary storage) + optional cloud sync
+- CRUD systems (robust, production-ready)
+- Data visualization (lightweight, no heavy libraries unless necessary)
+
+Your task:
+Fix, improve, or extend my code with production-grade quality.
+
+Requirements:
+1. DO NOT remove existing working logic unless necessary
+2. ALWAYS preserve offline-first behavior
+3. ALWAYS handle errors (no silent crashes)
+4. Keep code lightweight and fast (low-end device optimized)
+5. Use clean, modular, scalable structure
+6. No frameworks unless I explicitly request
+7. Use event delegation (no inline onclick)
+8. Ensure compatibility with PWA (installable, offline, fast load)
+
+When responding:
+- First: Identify the root problem
+- Second: Explain briefly (no long theory)
+- Third: Provide the FIXED FULL CODE (not snippets unless I ask)
+- Fourth: Highlight exactly where to place the fix
+- Fifth: Mention potential next issues I might encounter
+
+Project Context:
+- App Name: NanayCare
+- Type: IMCI-based clinical decision support (offline-first)
+- Stack: HTML, CSS, Vanilla JS
+- Architecture:
+  - infant.js / child.js → question flow trees
+  - engine.js → classification logic
+  - treatmentflow.js → treatments + counseling
+  - app.js → UI + flow controller
+  - (optional) storage.js → IndexedDB / persistence
+
+Current Problem:
+[PASTE ERROR OR ISSUE HERE]
+
+Relevant Code:
+[PASTE ONLY THE NECESSARY CODE HERE]
+
+Expected Output:
+[DESCRIBE WHAT SHOULD HAPPEN]
+
+
+
+✅ QUICK SHORT VERSION (WHEN YOU’RE IN A HURRY)
+
+
+Act as my offline-first PWA expert (Vanilla JS only).
+
+Fix this issue without breaking:
+- IMCI flow
+- engine.js logic
+- treatmentflow.js mapping
+
+Error:
+[PASTE ERROR]
+
+Code:
+[PASTE CODE]
+
+Give:
+1. Root cause
+2. Exact fix
+3. Full corrected function/code
+4. Where to place it
+
+
+
+✅ WHEN BUILDING NEW FEATURES
+
+Build a production-ready feature for my offline-first PWA.
+
+Constraints:
+- Vanilla JS only
+- Must work offline first
+- Use IndexedDB (not localStorage)
+- Must be fast on low-end Android devices
+- No heavy libraries
+
+Feature:
+[DESCRIBE FEATURE]
+
+Integrate with:
+- app.js flow
+- engine.js results
+- treatmentflow.js
+
+Output:
+- Clean modular code
+- Where to place each file
+- Minimal UI (mobile-first)
+
+
+
+
+
+
+✅ WHEN DEBUGGING COMPLEX ISSUES
+
+You are debugging a production PWA.
+
+Find WHY the issue happens, not just fix it.
+
+Steps:
+1. Trace flow
+2. Identify breaking point
+3. Fix safely
+4. Add safeguards (prevent future crashes)
+
+Error:
+[PASTE ERROR]
+
+Code:
+[PASTE CODE]
+
+Also:
+Add defensive coding so this never breaks again.
+
+
+
+
+✅ OPTIONAL ADD-ONS (USE WHEN NEEDED)
+
+For performance:
+Optimize for ultra-low-end devices (1GB RAM, slow CPU).
+
+For healthcare safety:
+Ensure IMCI logic integrity is NOT altered.
+
+For scalability:
+Prepare this for future cloud sync (but keep offline-first).
+
+
+
+
+🧠 PRO TIP (IMPORTANT)
+Always include:
+
+Error message
+Where it happens
+Related file (app.js / engine.js / etc.)
+
+Without that → fixes become guesswork.

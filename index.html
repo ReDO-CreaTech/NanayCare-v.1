@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>NanayCare</title>
+
+  <!-- PWA META -->
+  <meta name="theme-color" content="#2563eb" />
+  <link rel="manifest" href="manifest.json" />
+
+  <!-- STYLES -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+
+  <!-- ================= NAVBAR ================= -->
+  <header class="navbar">
+    <div class="logo">
+      NanayCare <span>• IMCI</span>
+    </div>
+
+    <nav>
+      <a href="#" id="homeBtn">Home</a>
+      <a href="#" id="recordsBtn">Records</a>
+    </nav>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+  <main class="app-container">
+
+    <div class="content">
+
+      <!-- HEADER -->
+      <div class="header-card">
+        <h1>NanayCare</h1>
+        <p>
+          Child Health Decision Support Tool (IMCI-Based)
+        </p>
+        <small>
+          Powered by <strong>RAVEN-HST</strong><br>
+          (Ravenbil Herrera Science & Technology)
+        </small>
+      </div>
+
+      <!-- ================= WIZARD PROGRESS ================= -->
+      <div class="card">
+        <div class="wizard-progress">
+          <div id="progressBar"></div>
+        </div>
+        <small id="progressText">Step 1</small>
+      </div>
+
+      <!-- ================= APP ROOT ================= -->
+      <div id="app"></div>
+
+    </div>
+  </main>
+
+  <!-- ================= FLOATING ACTION ================= -->
+  <button class="fab" id="quickStartBtn">
+    +
+  </button>
+
+  <!-- ================= DISCLAIMER MODAL ================= -->
+  <div class="disclaimer-modal" id="disclaimer" style="display:none;">
+    <div class="disclaimer-box">
+      <h2>Medical Disclaimer</h2>
+      <p>
+        This application is a decision-support tool based on IMCI guidelines.
+        It is not a substitute for professional medical judgment.
+      </p>
+
+      <button onclick="closeDisclaimer()">I Understand</button>
+    </div>
+  </div>
+
+  <!-- ================= SCRIPTS ================= -->
+
+  <script src="pouchdb.min.js"></script>
+
+
+  <script>
+  window.addEventListener("error", function (e) {
+    console.error("GLOBAL ERROR:", e.message);
+  });
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/pouchdb@7.3.1/dist/pouchdb.min.js"></script>
+  <script src="db.js"></script>
+  <!-- <script src="storage.js"></script> -->
+  
+  
+  <script src="infant.js"></script>
+  <script src="child.js"></script>
+  <script src="treatmentflow.js"></script>
+  <script src="engine.js"></script>
+  <script src="app.js"></script>
+  <script src="print.js"></script>
+
+
+  <!-- ================= WIZARD LOGIC ================= -->
+  <script>
+    // Simple wizard progress handler
+    function updateProgress(step, total) {
+      const percent = total ? (step / total) * 100 : 10;
+      const bar = document.getElementById("progressBar");
+      const text = document.getElementById("progressText");
+
+      if (bar) bar.style.width = percent + "%";
+      if (text) text.innerText = "Step " + (step + 1);
+    }
+
+    // Hook into your flow (light integration)
+    const originalNext = window.next;
+    window.next = function () {
+      updateProgress(window.step || 0, window.flow?.length || 1);
+      originalNext();
+    };
+
+    // FAB quick start
+    document.getElementById("quickStartBtn")
+      .addEventListener("click", () => start());
+
+    // Navbar
+    document.getElementById("homeBtn")
+      .addEventListener("click", () => start());
+
+    document.getElementById("recordsBtn")
+      .addEventListener("click", () => showPatientList?.());
+
+    // Disclaimer
+    function closeDisclaimer() {
+      document.getElementById("disclaimer").style.display = "none";
+    }
+
+    // Show once
+    window.addEventListener("load", () => {
+      setTimeout(() => {
+        document.getElementById("disclaimer").style.display = "flex";
+      }, 800);
+    });
+  </script>
+
+</body>
+</html>

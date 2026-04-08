@@ -1,0 +1,288 @@
+/* =================== ROOT TOKENS =================== */
+:root {
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --text: #1e293b;
+  --muted: #64748b;
+
+  --primary: #2563eb;
+  --primary-dark: #1d4ed8;
+
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --success: #10b981;
+
+  --radius: 14px;
+  --pad: 16px;
+}
+
+/* =================== RESET =================== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* =================== BASE =================== */
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* =================== LAYOUT =================== */
+.app-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 72px;
+}
+
+/* =================== NAVBAR =================== */
+.navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #0f172a;
+  color: #fff;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar .logo {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.navbar a {
+  color: #cbd5f5;
+  text-decoration: none;
+  font-size: 14px;
+  margin-left: 12px;
+}
+
+/* =================== CONTENT =================== */
+.content {
+  max-width: 720px;
+  margin: 24px auto;
+  padding: 0 12px;
+}
+
+/* =================== CARD =================== */
+.card {
+  background: var(--card);
+  padding: var(--pad);
+  border-radius: var(--radius);
+  margin-bottom: 16px;
+
+  /* lightweight shadow */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+/* REMOVE heavy hover effects for mobile performance */
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-2px);
+  }
+}
+
+/* =================== HEADINGS =================== */
+h1, h2, h3 {
+  margin-bottom: 10px;
+}
+
+h2 {
+  font-size: 18px;
+  color: var(--primary);
+}
+
+/* =================== INPUT =================== */
+input, select {
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  font-size: 14px;
+  background: #fff;
+}
+
+/* remove expensive glow */
+input:focus, select:focus {
+  outline: 2px solid var(--primary);
+  border-color: var(--primary);
+}
+
+/* =================== BUTTON =================== */
+button {
+  margin-top: 14px;
+  width: 100%;
+  padding: 12px;
+
+  border: none;
+  border-radius: 10px;
+  background: var(--primary);
+  color: #fff;
+  font-weight: 600;
+  font-size: 14px;
+
+  cursor: pointer;
+
+  /* fast animation only */
+  transition: transform 0.1s ease;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+button.secondary {
+  background: #e2e8f0;
+  color: var(--text);
+}
+
+/* =================== RESULT COLORS =================== */
+.result {
+  border-left: 4px solid;
+  padding-left: 12px;
+  margin-top: 12px;
+}
+
+.result.red {
+  border-color: var(--danger);
+}
+
+.result.yellow {
+  border-color: var(--warning);
+}
+
+.result.green {
+  border-color: var(--success);
+}
+
+/* =================== TREATMENT =================== */
+.treatment {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.treatment h4 {
+  margin: 6px 0;
+}
+
+.treatment ul {
+  padding-left: 16px;
+}
+
+/* =================== FAB =================== */
+.fab {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+
+  width: 56px;
+  height: 56px;
+
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+/* =================== MODAL =================== */
+.disclaimer-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 12px;
+}
+
+.disclaimer-box {
+  background: #fff;
+  width: 100%;
+  max-width: 520px;
+
+  max-height: 90vh;
+  overflow-y: auto;
+
+  padding: 16px;
+  border-radius: var(--radius);
+}
+
+/* =================== TABLE =================== */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+th, td {
+  padding: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+th {
+  background: #f8fafc;
+  font-weight: 600;
+}
+
+/* =================== UTIL =================== */
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.actions button {
+  flex: 1;
+}
+
+/* =================== RESPONSIVE =================== */
+@media (max-width: 480px) {
+  .content {
+    margin: 16px auto;
+  }
+
+  h2 {
+    font-size: 16px;
+  }
+
+  button {
+    font-size: 13px;
+  }
+}
+
+.wizard-progress {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+#wizardProgress,
+#progressBar {
+  height: 100%;
+  width: 10%;
+  background: #2563eb;
+  transition: width 0.2s ease;
+}
