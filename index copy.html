@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <!-- PWA / MOBILE -->
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="IMCI Triage">
+
+  <!-- PWA MANIFEST -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- ICONS (ADD YOUR ICON FILES) -->
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <title>IMCI Triage</title>
+
+  <!-- STYLES -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+
+<main class="app-container">
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="logo">Nanay<span>Care v.1</span></div>
+    <nav>
+      <!-- <a href="#">Home</a>
+      <a href="#">Guide</a>
+      <a href="#">About</a> -->
+    </nav>
+  </header>
+
+  <!-- CONTENT -->
+  <section class="content">
+
+    <div class="header-card">
+      <h1>Child Health Assistant (Prototype)</h1>
+      <p>For testing and evaluation purposes only</p>
+    </div>
+
+    <button class="fab" onclick="goToMapDirect()">
+  📍
+  <span class="fab-label">Find nearest hospital</span>
+</button>
+
+
+    <div id="app">
+      <div id="screen">
+        <p>Loading...</p>
+      </div>
+      <div id="records"></div>
+
+
+
+
+      <div class="card">
+  <h2>📊 WHO Weight-for-Age (0–5 years)</h2>
+  <p>Median weight reference (approximate WHO standard)</p>
+
+  <label for="sexTable">Select Sex:</label>
+  <select id="sexTable">
+    <option value="boy">Boy</option>
+    <option value="girl">Girl</option>
+  </select>
+
+  <div style="overflow-x:auto;">
+    <table id="whoTable" border="1" cellpadding="8" style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr>
+          <th>Age</th>
+          <th>Weight (kg)</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="breathApp">
+  <div class="breath-container">
+    <button id="breathBtn">Start Breathing Test</button>
+
+    <p id="breathLabel"></p>
+
+    <label for="sensSlider">Sensitivity</label>
+    <input type="range" min="0.5" max="3" step="0.1" id="sensSlider" value="1.2"/>
+
+    <p id="breathStatus"></p>
+    <h2 id="breathResult"></h2>
+
+    <canvas id="breathGraph" width="320" height="140"></canvas>
+  </div>
+</div>
+
+<!-- <button id="breathBtn">Start Breathing Test</button>
+
+<label for="sensSlider">Sensitivity</label>
+
+<input
+  type="range"
+  min="0.5"
+  max="3"
+  step="0.1"
+  id="sensSlider"
+  value="1.2"
+/>
+
+<p id="breathStatus"></p>
+<h2 id="breathResult"></h2>
+
+<canvas id="breathGraph" width="300" height="120"></canvas> -->
+
+    </div>
+  
+
+
+  </section>
+
+
+
+<div id="heartApp">
+  <div class="content">
+    <div class="card">
+      <h2>❤️ Heart Rate</h2>
+
+      <p class="hint">Cover camera with finger. Stay still.</p>
+      <p class="warning">
+        This is a prototype and not a medical device.
+      </p>
+
+      <video id="video" autoplay playsinline></video>
+      <canvas id="canvas" style="display:none;"></canvas>
+
+      <!-- Graph -->
+      <canvas id="graph" height="120"></canvas>
+
+      <button id="startBtn">Start Measurement</button>
+
+      <div id="status"></div>
+      <div id="quality"></div>
+      <div id="bpmResult"></div>
+    </div>
+  </div>
+</div>
+
+
+</main>
+
+
+<div id="disclaimerModal" class="disclaimer-modal">
+  <div class="disclaimer-box">
+    <h2>Medical Disclaimer</h2>
+
+    <p>
+      The following information provides general guidance on pediatric medication dosing and is intended for informational purposes only. It does not replace professional medical advice, diagnosis, or treatment.
+    </p>
+
+    <p>
+      Medication dosages for children are typically calculated by healthcare professionals based on body weight (mg/kg), the type of infection, and its severity. Doses are often divided into multiple administrations per day. Special considerations apply to infants under 3 months of age due to developing kidney function.
+    </p>
+
+    <p>
+      In more severe or resistant infections, higher dosing regimens may be required under medical supervision. Accurate dosing must always be determined by a qualified healthcare provider.
+    </p>
+
+    <p>
+      <strong>Do not self-medicate or adjust dosages.</strong> Always consult a licensed pediatrician before administering any medication to a child.
+    </p>
+
+    <label class="confirm">
+  <input type="checkbox" id="confirmCheck" />
+  <span>I understand this does not replace medical advice.</span>
+</label>
+
+<button id="acceptDisclaimer" disabled>I Accept</button>
+  </div>
+</div>
+
+
+<script>
+const WHO_TABLE = {
+  boy: [
+    { age: "New Born", weight: 3.3 },
+    { age: "1 month", weight: 4.5 },
+    { age: "2 months", weight: 5.6 },
+    { age: "3 months", weight: 6.4 },
+    { age: "6 months", weight: 7.9 },
+    { age: "9 months", weight: 8.9 },
+    { age: "12 months (1y)", weight: 9.6 },
+    { age: "18 months", weight: 11.0 },
+    { age: "24 months (2y)", weight: 12.2 },
+    { age: "3 years", weight: 14.3 },
+    { age: "4 years", weight: 16.3 },
+    { age: "5 years", weight: 18.3 }
+  ],
+  girl: [
+    { age: "New Born", weight: 3.2 },
+    { age: "1 month", weight: 4.2 },
+    { age: "2 months", weight: 5.1 },
+    { age: "3 months", weight: 5.8 },
+    { age: "6 months", weight: 7.3 },
+    { age: "9 months", weight: 8.2 },
+    { age: "12 months (1y)", weight: 8.9 },
+    { age: "18 months", weight: 10.2 },
+    { age: "24 months (2y)", weight: 11.5 },
+    { age: "3 years", weight: 13.9 },
+    { age: "4 years", weight: 16.0 },
+    { age: "5 years", weight: 18.0 }
+  ]
+};
+
+function renderWHOTable(sex) {
+  const tbody = document.querySelector("#whoTable tbody");
+  tbody.innerHTML = "";
+
+  WHO_TABLE[sex].forEach(row => {
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${row.age}</td>
+      <td>${row.weight} kg</td>
+    `;
+
+    tbody.appendChild(tr);
+  });
+}
+
+// init
+document.addEventListener("DOMContentLoaded", () => {
+  renderWHOTable("boy");
+
+  document.getElementById("sexTable").addEventListener("change", (e) => {
+    renderWHOTable(e.target.value);
+  });
+});
+</script>
+
+
+
+<!-- <script type="module">
+  import { renderPatientList } from "../Records/ui.js";
+
+
+  renderPatientList();
+</script> -->
+
+
+  <!-- NO JS FALLBACK -->
+  <noscript>
+    <div style="padding:20px; text-align:center; color:red;">
+      This app requires JavaScript to run.
+    </div>
+  </noscript>
+
+  <script src="https://unpkg.com/dexie@3/dist/dexie.js"></script>
+   <!-- Dexie.js -->
+<!-- <script src="dexie.min.js"></script> -->
+
+<!-- QRCode.js -->
+<!-- <script src="qrcode.min.js"></script> -->
+
+  <!-- CORE SYSTEM -->
+  <script src="i18n.js" defer></script>
+  <script src="db.js" defer></script>
+  <script src="records.js"></script>
+
+  <!-- ENGINE -->
+  <script src="engine.js" defer></script>
+
+  <!-- FLOWS -->
+  <script src="flows/infant.js" defer></script>
+  <script src="flows/child.js" defer></script>
+  <script src="flows/treatmentflow.js" defer></script>
+
+
+  <script src="bpm.js"></script>
+  <script src="breathetool.js"></script>
+
+
+  <!-- APP (LAST) -->
+  <script type="module" src="app.js" defer></script>
+
+  <!-- SERVICE WORKER -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(reg => {
+            console.log("SW registered");
+
+            // 🔄 auto update handling
+            reg.onupdatefound = () => {
+              const newWorker = reg.installing;
+              newWorker.onstatechange = () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  console.log("New version available");
+                }
+              };
+            };
+          })
+          .catch(err => console.log("SW failed", err));
+      });
+    }
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+
+</body>
+</html>
