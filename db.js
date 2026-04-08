@@ -125,7 +125,12 @@ function startSync() {
   
   // 1. ADD THE DB NAME TO THE END OF THE URL
   const remoteURL = "https://nanaycare1-zw1f2pm0.b4a.run/_utils/#/database/nanaycare_db";
-  const remoteDB = new PouchDB(remoteURL);
+  const remoteDB = new PouchDB(remoteURL, {
+  auth: {
+    username: "admin",
+    password: "your_secure_password"
+  }
+});
 
   console.log("🔄 Attempting to sync with:", remoteURL);
 
