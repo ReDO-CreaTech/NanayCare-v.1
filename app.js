@@ -1,25 +1,19 @@
 // ===============================
 // 👤 USER ROLE SYSTEM
 // ===============================
-const Roles = {
-  // FREE: "free",
-  HEALTH: "healthworker",
-  DOCTOR: "doctor"
-};
-
+// SAFE USER (NO LOGIN REQUIRED)
 function getUser() {
-  return JSON.parse(localStorage.getItem("user") || "null");
-}
-
-function setUser(user) {
-  localStorage.setItem("user", JSON.stringify(user));
+  try {
+    return JSON.parse(localStorage.getItem("user") || "null");
+  } catch {
+    return null;
+  }
 }
 
 function isMedical() {
   const u = getUser();
-  return u && (u.role === Roles.HEALTH || u.role === Roles.DOCTOR);
+  return u && (u.role === "healthworker" || u.role === "doctor");
 }
-
 
 // ==========================
 // GLOBAL STATE
@@ -56,6 +50,18 @@ screen.addEventListener("click", async (e) => {
   if (action === "medical-login") {
   return loginScreen();
   }
+
+  if (action === "login") {
+  const role = document.getElementById("role").value;
+  const name = document.getElementById("username").value;
+
+  if (role !== "free" && !name) {
+    return alert("Name required for medical role");
+  }
+
+  setUser({ role, name });
+  start();
+}
 
   try {
     if (action === "next-intake") return saveIntake();
