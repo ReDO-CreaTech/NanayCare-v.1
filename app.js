@@ -1,3 +1,26 @@
+// ===============================
+// 👤 USER ROLE SYSTEM
+// ===============================
+const Roles = {
+  // FREE: "free",
+  HEALTH: "healthworker",
+  DOCTOR: "doctor"
+};
+
+function getUser() {
+  return JSON.parse(localStorage.getItem("user") || "null");
+}
+
+function setUser(user) {
+  localStorage.setItem("user", JSON.stringify(user));
+}
+
+function isMedical() {
+  const u = getUser();
+  return u && (u.role === Roles.HEALTH || u.role === Roles.DOCTOR);
+}
+
+
 // ==========================
 // GLOBAL STATE
 // ==========================
