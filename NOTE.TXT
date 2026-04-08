@@ -1,4 +1,0 @@
-🌍 Real-time disease outbreak map
-☁️ Firebase sync (multi-device doctors)
-📊 Dashboard (top diseases per area)
-📱 PWA installable app
