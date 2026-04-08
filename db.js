@@ -59,21 +59,21 @@ window.savePatient = async function(record) {
     const existing = await db.get(record._id).catch(() => null);
 
     if (existing) {
-      // 🔥 merge history safely
-      const mergedHistory = [
-        ...(existing.history || []),
-        ...(record.history || [])
-      ];
+      const existingHistory = existing.history || [];
+      const newHistory = record.history || [];
 
-      // remove duplicates by date
-      const unique = Array.from(
-        new Map(mergedHistory.map(h => [h.date, h])).values()
-      );
+      const merged = [...existingHistory];
+
+      newHistory.forEach(n => {
+        if (!merged.find(m => m.date === n.date)) {
+          merged.push(n);
+        }
+      });
 
       record = {
         ...existing,
         ...record,
-        history: unique
+        history: merged
       };
     }
 
@@ -167,7 +167,17 @@ function startSync() {
   });
 }
 
-
+function loginScreen() {
+  render(card(`
+    <h2>Medical Login</h2>
+    <input id="username" placeholder="Your Name">
+    <select id="role">
+      <option value="healthworker">Health Worker</option>
+      <option value="doctor">Doctor</option>
+    </select>
+    <button data-action="login">Login</button>
+  `));
+}
 
 window.addEventListener("load", () => {
   startSync();

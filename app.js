@@ -191,16 +191,17 @@ screen.addEventListener("click", async (e) => {
   const signature = document.getElementById("doctorSignature").value;
   const soap = buildSOAP(updated, updated.classifications || []);
 
-  updated.history = updated.history || [];
-  updated.history.push({
-    date: updated.updatedAt,
-    soap,
-    note,
-    doctor: {
-      name: doctorName,
-      signature: signature
-    }
-      });
+const entry = {
+  date: new Date().toISOString(),
+  soap: soap || null,
+  snapshot: patient || null,
+  note: note || "",
+  doctor: getUser() ? { name: getUser().name } : null,
+  locked: true
+};
+
+record.history = record.history || [];
+record.history.push(entry);
 
       await savePatient(updated);
       return showPatientList();
