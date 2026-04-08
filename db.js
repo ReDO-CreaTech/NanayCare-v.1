@@ -53,14 +53,34 @@ window.createPatient = async function(data) {
 };
 
 window.savePatient = async function(record) {
-  // if (!db) return console.error("DB not available");
   if (!db) throw new Error("DB not initialized");
+
   try {
-    const res = await db.put(record);
-    console.log("✅ Saved:", res);
-    return res;
+    const existing = await db.get(record._id).catch(() => null);
+
+    if (existing) {
+      // 🔥 merge history safely
+      const mergedHistory = [
+        ...(existing.history || []),
+        ...(record.history || [])
+      ];
+
+      // remove duplicates by date
+      const unique = Array.from(
+        new Map(mergedHistory.map(h => [h.date, h])).values()
+      );
+
+      record = {
+        ...existing,
+        ...record,
+        history: unique
+      };
+    }
+
+    return await db.put(record);
   } catch (err) {
-    console.error("❌ Save Error:", err);
+    console.error("❌ Save FAILED", err);
+    throw err;
   }
 };
 
