@@ -87,47 +87,6 @@ if (action === "login") {
     if (action === "restart") return start();
 
 
-   if (action === "show-qr") {
-  if (!patient || !patient._id) return alert("No patient loaded");
-
-  const data = btoa(JSON.stringify(patient));
-
-  render(card(`
-    <h3>Scan QR</h3>
-    <canvas id="qr"></canvas>
-    <button data-action="records">Back</button>
-  `));
-
-  QRCode.toCanvas(document.getElementById("qr"), data, function (error) {
-    if (error) console.error(error);
-  });
-
-  return;
-}
-
-if (action === "import-qr") {
-  const raw = prompt("Paste QR data");
-  if (!raw) return;
-
-  try {
-    const parsed = JSON.parse(atob(raw));
-
-    const existing = await getPatient(parsed._id).catch(() => null);
-
-    if (existing) {
-      parsed._rev = existing._rev;
-    }
-
-    await savePatient(parsed);
-
-    alert("Imported successfully");
-    return showPatientList();
-
-  } catch (e) {
-    console.error(e);
-    alert("Invalid QR data");
-  }
-
   // ==========================
 // 🔍 SEARCH UI
 // ==========================
@@ -179,7 +138,9 @@ if (action === "do-search") {
     `).join("")}
   `));
 }
-}
+
+
+
 
   // ==========================
   // NEW CRUD ACTIONS
@@ -244,8 +205,6 @@ if (action === "do-search") {
         ${isMedical() ? `<button data-action="edit" data-id="${p._id}">Edit</button>` : ""}
         <button data-action="restart">New</button>
         <button onclick="printRecord()">Print</button>
-        <button data-action="show-qr">Show QR</button>
-        <button data-action="import-qr">Import QR</button>
       </div>
     `));
     }
