@@ -25,6 +25,7 @@ function isMedical() {
 let patient = {};
 let step = 0;
 let flow = [];
+let stepHistory = [];
 let lang = "en";
 
 const screen = document.getElementById("app");
@@ -127,6 +128,14 @@ if (action === "login") {
     if (action === "next-num") return ansNum();
     if (action === "next-sel") return ansSel();
     if (action === "restart") return start();
+
+    if (action === "back") {
+  if (!stepHistory.length) return;
+
+  step = stepHistory.pop();
+  renderQuestion(flow[step]);
+  return;
+}
 
 
   // ==========================
@@ -614,6 +623,7 @@ function saveIntake() {
 // ==========================
 function initFlow() {
   step = 0;
+   stepHistory = [];
 
   flow = patient.ageDays < 60
   ? (infantFlow || [])
@@ -650,6 +660,8 @@ function next() {
 function renderQuestion(q) {
   const label = q.label?.[lang] || q.label;
 
+  
+
   if (q.type === "boolean") {
     render(card(`
       <h2>${label}</h2>
@@ -668,26 +680,45 @@ function renderQuestion(q) {
     `));
   }
 
+  // else if (q.type === "select") {
+  //   render(card(`
+  //     <h2>${label}</h2>
+  //     <select id="val">
+  //       <option value="">-- Select --</option>
+  //       ${q.options.map(o => `
+  //         <option value="${o.value}">
+  //           ${o.label?.[lang] || o.label}
+  //         </option>
+  //       `).join("")}
+  //     </select>
+  //     ${button("Next", "next-sel", "primary")}
+  //     ${stepHistory.length ? `<button data-action="back">Back</button>` : ""}
+  //   `));
+  // }
   else if (q.type === "select") {
-    render(card(`
-      <h2>${label}</h2>
-      <select id="val">
-        <option value="">-- Select --</option>
-        ${q.options.map(o => `
-          <option value="${o.value}">
-            ${o.label?.[lang] || o.label}
-          </option>
-        `).join("")}
-      </select>
+  render(card(`
+    <h2>${label}</h2>
+    <select id="val">
+      <option value="">-- Select --</option>
+      ${q.options.map(o => `
+        <option value="${o.value}">
+          ${o.label?.[lang] || o.label}
+        </option>
+      `).join("")}
+    </select>
+    <div class="actions">
       ${button("Next", "next-sel", "primary")}
-    `));
-  }
+      ${stepHistory.length ? `<button data-action="back">Back</button>` : ""}
+    </div>
+  `));
+}
 }
 
 // ==========================
 // ANSWERS
 // ==========================
 function ans(value) {
+  stepHistory.push(step); // 🔥 SAVE CURRENT STEP
   const q = flow[step];
   if (!q) return;
 
@@ -713,6 +744,8 @@ function ansNum() {
   const val = document.getElementById("val").value;
   if (val === "") return alert("Enter value");
 
+  stepHistory.push(step); // ✅ ADD THIS
+
   const q = flow[step];
   patient[q.id] = Number(val);
 
@@ -728,6 +761,8 @@ function ansNum() {
 function ansSel() {
   const val = document.getElementById("val").value;
   if (!val) return alert("Select a value");
+
+  stepHistory.push(step); // ✅ ADD THIS
 
   const q = flow[step];
   patient[q.id] = val;
