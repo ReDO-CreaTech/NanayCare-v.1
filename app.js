@@ -2,12 +2,12 @@
 // 👤 USER ROLE SYSTEM
 // ===============================
 // SAFE USER (NO LOGIN REQUIRED)
+const user = getUser();
+
+
 function getUser() {
-  try {
-    return JSON.parse(localStorage.getItem("user") || "null");
-  } catch {
-    return null;
-  }
+  const u = localStorage.getItem("user");
+  return u ? JSON.parse(u) : null;
 }
 
 function setUser(user) {
@@ -36,6 +36,10 @@ function render(html) {
   screen.innerHTML = html;
 }
 
+function printRecord() {
+  window.print();
+}
+
 function card(content) {
   return `<div class="card">${content}</div>`;
 }
@@ -46,7 +50,7 @@ function button(label, action, cls = "") {
 
 
 function formatAge(days) {
-  if (!days) return "-";
+  if (days === undefined || days === null) return "-";
 
   const years = Math.floor(days / 365);
   const months = Math.floor((days % 365) / 30);
@@ -57,9 +61,34 @@ function formatAge(days) {
   return `${d} days`;
 }
 
+function formatAgeFromDOB(dob) {
+  if (!dob || dob === "Invalid Date") return "-";
+
+  const birth = new Date(dob + "T00:00:00");
+  const today = new Date();
+
+  let years = today.getFullYear() - birth.getFullYear();
+  let months = today.getMonth() - birth.getMonth();
+  let days = today.getDate() - birth.getDate();
+
+  if (days < 0) {
+    months--;
+    const prevMonth = new Date(today.getFullYear(), today.getMonth(), 0);
+    days += prevMonth.getDate();
+  }
+
+  if (months < 0) {
+    years--;
+    months += 12;
+  }
+
+  return `${years}y ${months}m ${days}d`;
+}
+
 // ==========================
 // EVENT DELEGATION
 // ==========================
+
 screen.addEventListener("click", async (e) => {
   const action = e.target.dataset.action;
   if (!action) return;
@@ -114,13 +143,14 @@ if (action === "search") {
     <button data-action="do-search">Search</button>
     <button data-action="records">Back</button>
   `));
+   return;
 }
 // ==========================
 // 🔍 SEARCH LOGIC
 // ==========================
 if (action === "do-search") {
-  const id = document.getElementById("searchId").value;
-  const name = document.getElementById("searchName").value.toLowerCase();
+  const id = document.getElementById("searchId").value.trim();
+  const name = document.getElementById("searchName").value.toLowerCase().trim();
   const dob = document.getElementById("searchDob").value;
 
   const all = await getAllPatients();
@@ -128,12 +158,13 @@ if (action === "do-search") {
   let results = all;
 
   if (id) {
-    results = all.filter(p => p._id === id);
+    results = all.filter(p => p._id && p._id.includes(id));
   } else {
-    results = all.filter(p =>
-      (!name || p.name?.toLowerCase().includes(name)) &&
-      (!dob || p.dob === dob)
-    );
+    results = all.filter(p => {
+      const matchName = !name || p.name?.toLowerCase().includes(name);
+      const matchDob = !dob || p.dob === dob;
+      return matchName && matchDob;
+    });
   }
 
   if (!results.length) {
@@ -144,15 +175,15 @@ if (action === "do-search") {
     <h3>Results</h3>
     ${results.map(p => `
       <div class="card">
-        ${p.name}<br>
+        <strong>${p.name}</strong><br>
+        Age: ${formatAgeFromDOB(p.dob)}<br>
         DOB: ${p.dob || "-"}
         <button data-action="view" data-id="${p._id}">View</button>
       </div>
     `).join("")}
   `));
+   return;
 }
-
-
 
 
   // ==========================
@@ -194,7 +225,8 @@ if (action === "do-search") {
       <div class="section">
         <h3>Basic Info</h3>
         <p><strong>Name:</strong> ${p.name || "-"}</p>
-        <p><strong>Age:</strong> ${p.ageDays || "-"} days</p>
+        <p><strong>Age:</strong> ${formatAgeFromDOB(p.dob)}</p>
+        <p><strong>DOB:</strong> ${p.dob || "-"}</p>
         <p><strong>Weight:</strong> ${p.weight || "-"} kg</p>
       </div>
 
@@ -215,12 +247,39 @@ if (action === "do-search") {
 
       <div class="actions">
         <button data-action="records">Back</button>
-        ${isMedical() ? `<button data-action="edit" data-id="${p._id}">Edit</button>` : ""}
-        <button data-action="restart">New</button>
+        ${isMedical() ? `<button data-action="new-assessment" data-id="${p._id}">New Assessment</button>` : ""}
+        <button data-action="restart">Exit</button>
         <button onclick="printRecord()">Print</button>
       </div>
     `));
     }
+
+
+    if (action === "new-assessment") {
+  const id = e.target.dataset.id;
+  if (!id) return;
+
+  const p = await getPatient(id);
+  if (!p) return alert("Patient not found");
+
+  // ✅ keep identity + history
+  patient = {
+    ...p,
+    history: p.history || []
+  };
+
+  // (optional) recalc ageDays
+  if (patient.dob) {
+    const birth = new Date(patient.dob + "T00:00:00");
+    patient.ageDays = Math.floor(
+      (new Date() - birth) / (1000 * 60 * 60 * 24)
+    );
+  }
+
+  // 🚀 start new IMCI flow
+  initFlow();
+  return;
+}
 
     if (action === "edit") {
       const id = e.target.dataset.id;
@@ -232,7 +291,7 @@ if (action === "do-search") {
         <h2>Edit Patient</h2>
 
         <input id="name" value="${p.name || ""}" placeholder="Name">
-        <input id="age" type="number" value="${p.ageDays || ""}" placeholder="Age (days)">
+        <input id="dob" type="date" value="${p.dob || ""}">
         <input id="weight" type="number" value="${p.weight || ""}" placeholder="Weight">
 
         <textarea id="note" placeholder="Doctor notes..." style="
@@ -256,10 +315,20 @@ if (action === "do-search") {
       const updated = {
         ...patient, // KEEP _id and _rev
         name: document.getElementById("name").value,
-        ageDays: Number(document.getElementById("age").value),
         weight: Number(document.getElementById("weight").value),
         updatedAt: new Date().toISOString()
       };
+
+      const dob = document.getElementById("dob").value;
+const birth = new Date(dob);
+const ageDays = Math.floor((new Date() - birth) / (1000*60*60*24));
+
+updated.dob = dob;
+updated.ageDays = ageDays;
+
+if (updated.history?.some(h => h.locked)) {
+  // do nothing or warn
+}
 
       // 🔥 CRITICAL: timeline history
   const note = document.getElementById("note").value;
@@ -310,7 +379,7 @@ function formatKey(key) {
 // Clinical Data (auto-scan patient answers)
 // ==========================
 function buildClinicalData(p) {
-  const ignore = ["name", "ageDays", "weight", "classifications", "_id"];
+  const ignore = ["name", "ageDays", "weight", "classifications", "_id", "history", "soap", "updatedAt"];
 
   return Object.entries(p)
     .filter(([k]) => !ignore.includes(k))
@@ -350,7 +419,7 @@ function buildTimeline(p) {
 
     return `
       <div class="card">
-        <strong>${new Date(h.date).toLocaleString()}</strong>
+        <strong>${h.date ? new Date(h.date).toLocaleString() : "-"}</strong>
 
         <div class="section">
           <strong>S (Subjective):</strong>
@@ -473,8 +542,8 @@ const roleDisplay = user ? `<p>Logged in as: ${user.name} (${user.role})</p>` : 
 
     <input id="name" placeholder="Full Name">
     <input id="dob" type="date">
-    <input id="age" type="number" placeholder="Age (days)">
-    <input id="weight" type="number" placeholder="Weight (kg)">
+    <input id="age" type="number" placeholder="Age" readonly>
+    <input id="weight" type="number" placeholder="Weight (kg)" value="${patient.weight || ""}">
 
     ${button("Next", "next-intake", "primary")}
     ${button("Records", "records")}
@@ -482,6 +551,26 @@ const roleDisplay = user ? `<p>Logged in as: ${user.name} (${user.role})</p>` : 
   <button data-action="medical-login">Health Worker / Doctor</button>
 </div>
   `));
+
+
+  const dobInput = document.getElementById("dob");
+const ageInput = document.getElementById("age");
+
+if (dobInput && ageInput) {
+  dobInput.addEventListener("input", () => {
+    const dob = dobInput.value;
+    if (!dob) return;
+
+    const birth = new Date(dob + "T00:00:00");
+    const today = new Date();
+
+    const ageDays = Math.floor(
+      (today - birth) / (1000 * 60 * 60 * 24)
+    );
+
+    ageInput.value = ageDays;
+  });
+}
 }
 
 // function saveIntake() {
@@ -507,7 +596,7 @@ function saveIntake() {
     return;
   }
 
-  const birth = new Date(dob);
+  const birth = new Date(dob + "T00:00:00");
   const today = new Date();
 
   const diffTime = today - birth;
@@ -527,8 +616,8 @@ function initFlow() {
   step = 0;
 
   flow = patient.ageDays < 60
-    ? infantFlow
-    : childFlow;
+  ? (infantFlow || [])
+  : (childFlow || []);
 
   next();
 }
@@ -676,7 +765,7 @@ async function showPatientList() {
       ${data.map(p => `
         <div class="card">
           <strong>${p.name || "No name"}</strong><br>
-          Age: ${p.ageDays || "-"} days<br>
+          Age: ${formatAgeFromDOB(p.dob) || "-"}<br>
           Weight: ${p.weight || "-"} kg
 
           <div class="actions">
@@ -736,26 +825,39 @@ if (!Array.isArray(results)) {
   results = prioritize(results);
 
   // SAVE
-  // const record = await createPatient({
-  //   ...patient,
-  //   classifications: results
-  // }, true);
+
   const soap = buildSOAP(patient, results);
 
-  const record = await createPatient({
+
+    let record;
+
+if (patient._id) {
+  const latest = await getPatient(patient._id);
+
+  record = {
+    ...latest,
+    ...patient,
+    classifications: results,
+    soap
+  };
+} else {
+  record = await createPatient({
     ...patient,
     classifications: results,
     soap
   });
-    // record.history = record.history || [];
-    // record.history.push({
-    //   date: new Date().toISOString(),
-    //   soap
-    // });
+}
+
+    
 
   const user = getUser();
-const doctorName = user?.name || prompt("Doctor Name:");
-  const signature = prompt("Type your signature:");
+  let doctorName = "-";
+  let signature = "-";
+
+  if (isMedical()) {
+    doctorName = user?.name || "Unknown";
+    signature = prompt("Type your signature:") || "-";
+  }
   record.history = record.history || [];
   record.history.push({
   date: new Date().toISOString(),
@@ -767,11 +869,12 @@ const doctorName = user?.name || prompt("Doctor Name:");
   locked: true
 });
 
+const saved = await savePatient(record);
+patient = saved;
 
-  await savePatient(record);
-
-  window.currentPatient = record;
-  patient = { ...record };
+window.currentPatient = saved;
+  // window.currentPatient = record;
+  // patient = { ...record };
 
   render(buildResultUI(results));
 }
@@ -868,7 +971,7 @@ function buildResultUI(results) {
   return card(`
     <h2>Assessment Result</h2>
 
-    <p><strong>Age:</strong> ${patient.ageDays} days</p>
+    <p><strong>Age:</strong> ${formatAgeFromDOB(patient.dob)}</p>
     <p><strong>Weight:</strong> ${patient.weight} kg</p>
 
     ${resultHTML}

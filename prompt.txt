@@ -149,3 +149,6 @@ Where it happens
 Related file (app.js / engine.js / etc.)
 
 Without that → fixes become guesswork.
+
+
+// <p><strong>Age:</strong> ${p.ageDays || "-"} days</p>
