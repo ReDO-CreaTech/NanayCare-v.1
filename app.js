@@ -44,6 +44,19 @@ function button(label, action, cls = "") {
   return `<button class="${cls}" data-action="${action}">${label}</button>`;
 }
 
+
+function formatAge(days) {
+  if (!days) return "-";
+
+  const years = Math.floor(days / 365);
+  const months = Math.floor((days % 365) / 30);
+  const d = days % 30;
+
+  if (years > 0) return `${years}y ${months}m`;
+  if (months > 0) return `${months}m ${d}d`;
+  return `${d} days`;
+}
+
 // ==========================
 // EVENT DELEGATION
 // ==========================
