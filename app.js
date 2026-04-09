@@ -201,7 +201,12 @@ const entry = {
 };
 
 record.history = record.history || [];
-record.history.push(entry);
+// record.history.push(entry);
+record.history.push({
+  date: new Date().toISOString(),
+  soap,
+  locked: true
+});
 
       await savePatient(updated);
       return showPatientList();
