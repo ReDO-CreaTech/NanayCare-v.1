@@ -471,19 +471,42 @@ const roleDisplay = user ? `<p>Logged in as: ${user.name} (${user.role})</p>` : 
   `));
 }
 
-function saveIntake() {
-  patient.name = document.getElementById("name").value.trim();
-  patient.ageDays = Number(document.getElementById("age").value);
-  patient.weight = Number(document.getElementById("weight").value);
+// function saveIntake() {
+//   patient.name = document.getElementById("name").value.trim();
+//   patient.ageDays = Number(document.getElementById("age").value);
+//   patient.weight = Number(document.getElementById("weight").value);
 
-  if (!patient.name || !patient.ageDays || !patient.weight) {
+//   if (!patient.name || !patient.ageDays || !patient.weight) {
+//     alert("Complete all fields");
+//     return;
+//   }
+
+//   initFlow();
+// }
+
+function saveIntake() {
+  const name = document.getElementById("name").value.trim();
+  const dob = document.getElementById("dob").value;
+  const weight = Number(document.getElementById("weight").value);
+
+  if (!name || !dob || !weight) {
     alert("Complete all fields");
     return;
   }
 
+  const birth = new Date(dob);
+  const today = new Date();
+
+  const diffTime = today - birth;
+  const ageDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+  patient.name = name;
+  patient.dob = dob;
+  patient.ageDays = ageDays;
+  patient.weight = weight;
+
   initFlow();
 }
-
 // ==========================
 // INIT FLOW
 // ==========================
