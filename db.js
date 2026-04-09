@@ -1,5 +1,21 @@
 
+// ==========================
+// DECRYPT LAYER
+// ==========================
+async function safeParse(doc) {
+  // 🔥 If encrypted
+  if (doc.data) {
+    try {
+      return JSON.parse(atob(doc.data));
+    } catch {
+      console.warn("Decrypt failed, fallback raw");
+      return doc;
+    }
+  }
 
+  // 🔥 If normal record
+  return doc;
+}
 
 window.addEventListener("load", () => {
   console.log("[SYSTEM CHECK]", systemCheck());
@@ -88,7 +104,12 @@ window.getAllPatients = async function() {
   if (!db) return [];
   try {
     const result = await db.allDocs({ include_docs: true, descending: true });
-    return result.rows.map(row => row.doc);
+    // return result.rows.map(row => row.doc);
+    const parsed = await Promise.all(
+  result.rows.map(async row => await safeParse(row.doc))
+);
+
+return parsed;
   } catch (err) {
     console.error("❌ Fetch Error:", err);
     return [];
@@ -98,7 +119,9 @@ window.getAllPatients = async function() {
 window.getPatient = async function(id) {
   if (!db) return null;
   try {
-    return await db.get(id);
+    // return await db.get(id);
+    const doc = await db.get(id);
+return await safeParse(doc);
   } catch (err) {
     return null;
   }
@@ -119,17 +142,34 @@ window.deletePatient = async function(id) {
 // ==========================
 
 
-window.savePatient = async function(record) {
-  console.log("[DB] savePatient called", record);
+// window.savePatient = async function(record) {
+//   console.log("[DB] savePatient called", record);
 
-  if (!db) throw new Error("[DB] Not initialized");
+//   if (!db) throw new Error("[DB] Not initialized");
+
+//   try {
+//     const res = await db.put(record);
+//     console.log("[DB] Saved OK", res);
+//     return res;
+//   } catch (err) {
+//     console.error("[DB] Save FAILED", err);
+//     throw err;
+//   }
+// };
+window.savePatient = async function(record) {
+  if (!db) throw new Error("DB not initialized");
 
   try {
-    const res = await db.put(record);
-    console.log("[DB] Saved OK", res);
-    return res;
+    const encrypted = btoa(JSON.stringify(record));
+
+    const doc = {
+      _id: record._id,
+      data: encrypted
+    };
+
+    return await db.put(doc);
   } catch (err) {
-    console.error("[DB] Save FAILED", err);
+    console.error("❌ Save FAILED", err);
     throw err;
   }
 };
