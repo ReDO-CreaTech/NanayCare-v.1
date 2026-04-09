@@ -87,38 +87,97 @@ if (action === "login") {
     if (action === "restart") return start();
 
 
-    if (action === "show-qr") {
+   if (action === "show-qr") {
   if (!patient || !patient._id) return alert("No patient loaded");
 
   const data = btoa(JSON.stringify(patient));
 
-  return render(card(`
-    <h3>QR Transfer (Copy this)</h3>
-    <textarea style="width:100%;height:150px;">${data}</textarea>
+  render(card(`
+    <h3>Scan QR</h3>
+    <canvas id="qr"></canvas>
     <button data-action="records">Back</button>
   `));
+
+  QRCode.toCanvas(document.getElementById("qr"), data, function (error) {
+    if (error) console.error(error);
+  });
+
+  return;
 }
 
 if (action === "import-qr") {
   const raw = prompt("Paste QR data");
-
   if (!raw) return;
 
   try {
-  const parsed = JSON.parse(atob(raw));
+    const parsed = JSON.parse(atob(raw));
 
-  const existing = await getPatient(parsed._id).catch(() => null);
+    const existing = await getPatient(parsed._id).catch(() => null);
 
-  if (existing) {
-    parsed._rev = existing._rev; // 🔥 prevent conflict
+    if (existing) {
+      parsed._rev = existing._rev;
+    }
+
+    await savePatient(parsed);
+
+    alert("Imported successfully");
+    return showPatientList();
+
+  } catch (e) {
+    console.error(e);
+    alert("Invalid QR data");
   }
 
-  await savePatient(parsed);
+  // ==========================
+// 🔍 SEARCH UI
+// ==========================
+if (action === "search") {
+  render(card(`
+    <h2>Search Patient</h2>
 
-  alert("Imported successfully");
-  return showPatientList();
-} catch {
-  alert("Invalid QR data");
+    <input id="searchId" placeholder="Patient ID">
+    <input id="searchName" placeholder="Name">
+    <input id="searchDob" type="date">
+
+    <button data-action="do-search">Search</button>
+    <button data-action="records">Back</button>
+  `));
+}
+// ==========================
+// 🔍 SEARCH LOGIC
+// ==========================
+if (action === "do-search") {
+  const id = document.getElementById("searchId").value;
+  const name = document.getElementById("searchName").value.toLowerCase();
+  const dob = document.getElementById("searchDob").value;
+
+  const all = await getAllPatients();
+
+  let results = all;
+
+  if (id) {
+    results = all.filter(p => p._id === id);
+  } else {
+    results = all.filter(p =>
+      (!name || p.name?.toLowerCase().includes(name)) &&
+      (!dob || p.dob === dob)
+    );
+  }
+
+  if (!results.length) {
+    return alert("No match found");
+  }
+
+  render(card(`
+    <h3>Results</h3>
+    ${results.map(p => `
+      <div class="card">
+        ${p.name}<br>
+        DOB: ${p.dob || "-"}
+        <button data-action="view" data-id="${p._id}">View</button>
+      </div>
+    `).join("")}
+  `));
 }
 }
 
@@ -438,7 +497,10 @@ const roleDisplay = user ? `<p>Logged in as: ${user.name} (${user.role})</p>` : 
   render(card(`
     <h2>${roleDisplay}Patient Intake</h2>
 
+    ${isMedical() ? button("Search Records", "search") : ""}
+
     <input id="name" placeholder="Full Name">
+    <input id="dob" type="date">
     <input id="age" type="number" placeholder="Age (days)">
     <input id="weight" type="number" placeholder="Weight (kg)">
 
