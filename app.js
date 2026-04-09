@@ -10,6 +10,10 @@ function getUser() {
   }
 }
 
+function setUser(user) {
+  localStorage.setItem("user", JSON.stringify(user));
+}
+
 function isMedical() {
   const u = getUser();
   return u && (u.role === "healthworker" || u.role === "doctor");
@@ -51,7 +55,7 @@ screen.addEventListener("click", async (e) => {
   return loginScreen();
   }
 
-  if (action === "login") {
+if (action === "login") {
   const role = document.getElementById("role").value;
   const name = document.getElementById("username").value;
 
@@ -60,7 +64,11 @@ screen.addEventListener("click", async (e) => {
   }
 
   setUser({ role, name });
-  start();
+
+  alert("Logged in as " + name);
+
+  return intake(); // 🔥 go back to app
+
 }
 
   try {
@@ -78,6 +86,41 @@ screen.addEventListener("click", async (e) => {
     if (action === "next-sel") return ansSel();
     if (action === "restart") return start();
 
+
+    if (action === "show-qr") {
+  if (!patient || !patient._id) return alert("No patient loaded");
+
+  const data = btoa(JSON.stringify(patient));
+
+  return render(card(`
+    <h3>QR Transfer (Copy this)</h3>
+    <textarea style="width:100%;height:150px;">${data}</textarea>
+    <button data-action="records">Back</button>
+  `));
+}
+
+if (action === "import-qr") {
+  const raw = prompt("Paste QR data");
+
+  if (!raw) return;
+
+  try {
+  const parsed = JSON.parse(atob(raw));
+
+  const existing = await getPatient(parsed._id).catch(() => null);
+
+  if (existing) {
+    parsed._rev = existing._rev; // 🔥 prevent conflict
+  }
+
+  await savePatient(parsed);
+
+  alert("Imported successfully");
+  return showPatientList();
+} catch {
+  alert("Invalid QR data");
+}
+}
 
   // ==========================
   // NEW CRUD ACTIONS
@@ -139,9 +182,11 @@ screen.addEventListener("click", async (e) => {
 
       <div class="actions">
         <button data-action="records">Back</button>
-        <button data-action="edit" data-id="${p._id}">Edit</button>
+        ${isMedical() ? `<button data-action="edit" data-id="${p._id}">Edit</button>` : ""}
         <button data-action="restart">New</button>
         <button onclick="printRecord()">Print</button>
+        <button data-action="show-qr">Show QR</button>
+        <button data-action="import-qr">Import QR</button>
       </div>
     `));
     }
@@ -191,20 +236,17 @@ screen.addEventListener("click", async (e) => {
   const signature = document.getElementById("doctorSignature").value;
   const soap = buildSOAP(updated, updated.classifications || []);
 
-const entry = {
-  date: new Date().toISOString(),
-  soap: soap || null,
-  snapshot: patient || null,
-  note: note || "",
-  doctor: getUser() ? { name: getUser().name } : null,
-  locked: true
-};
 
-record.history = record.history || [];
-// record.history.push(entry);
-record.history.push({
+updated.history = updated.history || [];
+
+updated.history.push({
   date: new Date().toISOString(),
   soap,
+  note,
+  doctor: {
+    name: doctorName || getUser()?.name || "Unknown",
+    signature: signature || "-"
+  },
   locked: true
 });
 
@@ -391,8 +433,10 @@ function start() {
 // INTAKE
 // ==========================
 function intake() {
+  const user = getUser();
+const roleDisplay = user ? `<p>Logged in as: ${user.name} (${user.role})</p>` : "";
   render(card(`
-    <h2>Patient Intake</h2>
+    <h2>${roleDisplay}Patient Intake</h2>
 
     <input id="name" placeholder="Full Name">
     <input id="age" type="number" placeholder="Age (days)">
@@ -400,6 +444,9 @@ function intake() {
 
     ${button("Next", "next-intake", "primary")}
     ${button("Records", "records")}
+    <div class="actions">
+  <button data-action="medical-login">Health Worker / Doctor</button>
+</div>
   `));
 }
 
@@ -550,16 +597,16 @@ function ansSel() {
 // ==========================
 async function showPatientList() {
   try {
-    if (typeof showPatientList !== "function") {
-  console.error("❌ showPatientList missing (scope issue)");
+//     if (typeof showPatientList !== "function") {
+//   console.error("❌ showPatientList missing (scope issue)");
 
-  render(card(`
-    <h3>System Error</h3>
-    <p>Records module not loaded</p>
-    <button data-action="restart">Restart</button>
-  `));
-  return;
-}
+//   render(card(`
+//     <h3>System Error</h3>
+//     <p>Records module not loaded</p>
+//     <button data-action="restart">Restart</button>
+//   `));
+//   return;
+// }
 
     const data = await getAllPatients();
 
@@ -643,23 +690,25 @@ if (!Array.isArray(results)) {
     classifications: results,
     soap
   });
-    record.history = record.history || [];
-    record.history.push({
-      date: new Date().toISOString(),
-      soap
-    });
+    // record.history = record.history || [];
+    // record.history.push({
+    //   date: new Date().toISOString(),
+    //   soap
+    // });
 
-  const doctorName = prompt("Doctor Name:");
+  const user = getUser();
+const doctorName = user?.name || prompt("Doctor Name:");
   const signature = prompt("Type your signature:");
   record.history = record.history || [];
   record.history.push({
-    date: new Date().toISOString(),
-    soap,
-    doctor: {
-      name: doctorName,
-      signature: signature
-    }
-  });
+  date: new Date().toISOString(),
+  soap,
+  doctor: {
+    name: doctorName,
+    signature: signature
+  },
+  locked: true
+});
 
 
   await savePatient(record);
