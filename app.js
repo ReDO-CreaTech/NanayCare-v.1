@@ -281,11 +281,12 @@ function normalize(str) {
     .trim();
 }
 
-async function findExistingPatient(name, dob) {
+async function findExistingPatient(firstName, lastName, dob) {
   const all = await getAllPatients();
 
   return all.find(p =>
-    normalize(p.name) === normalize(name) &&
+    normalize(p.firstName) === normalize(firstName) &&
+    normalize(p.lastName) === normalize(lastName) &&
     p.dob === dob
   );
 }
@@ -341,7 +342,8 @@ function intake() {
   render(card(`
     <h2>Patient Intake</h2>
 
-    <input id="name" placeholder="Full Name">
+    <input id="firstName" placeholder="First Name">
+    <input id="lastName" placeholder="Surname">
     <input id="dob" type="date">
     <input id="age" type="number" placeholder="Age (days)" readonly>
     <input id="weight" type="number" placeholder="Weight (kg)">
@@ -351,20 +353,10 @@ function intake() {
   `));
 }
 
-// function saveIntake() {
-//   patient.name = document.getElementById("name").value.trim();
-//   patient.ageDays = Number(document.getElementById("age").value);
-//   patient.weight = Number(document.getElementById("weight").value);
-
-//   if (!patient.name || !patient.ageDays || !patient.weight) {
-//     alert("Complete all fields");
-//     return;
-//   }
-
-//   initFlow();
-// }
 async function saveIntake() {
-  const name = document.getElementById("name").value.trim();
+  const firstName = document.getElementById("firstName").value.trim();
+  const lastName = document.getElementById("lastName").value.trim();
+  const name = `${firstName} ${lastName}`.trim();
   const dob = document.getElementById("dob").value;
   const ageDays = Number(document.getElementById("age").value);
   const weight = Number(document.getElementById("weight").value);
@@ -385,6 +377,8 @@ async function saveIntake() {
   }
 
   // update fields
+  patient.firstName = firstName;
+  patient.lastName = lastName;
   patient.name = name;
   patient.dob = dob;
   patient.ageDays = ageDays;
