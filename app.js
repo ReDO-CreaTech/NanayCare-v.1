@@ -62,7 +62,7 @@ const btn = e.target.closest("button[data-action]");
   if (!btn) return;
 
 
-  const action = e.target.dataset.action;
+  const action = btn.dataset.action;
 
   try {
     if (action === "next-intake") return saveIntake();
@@ -136,7 +136,7 @@ const btn = e.target.closest("button[data-action]");
 }
 
     if (action === "reassess") {
-      return handleReassess(e);
+      return handleReassess(btn);
     }
 
   } catch (err) {
@@ -150,6 +150,14 @@ const btn = e.target.closest("button[data-action]");
   }
 });
 
+
+
+function handleReassess(btn) {
+  const id = btn.dataset.id;
+
+  patient = { _id: id };
+  initFlow();
+}
 
 // ==========================
 // Make keys human-readable (CRITICAL)
