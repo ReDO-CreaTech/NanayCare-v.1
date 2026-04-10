@@ -35,7 +35,13 @@ function formatAgeYMD(days) {
 
 function calculateAgeDays(dob) {
   if (!dob) return 0;
-  const diff = new Date() - new Date(dob);
+
+  const birth = new Date(dob);
+  const today = new Date();
+
+  if (birth > today) return 0; // ❗ future date protection
+
+  const diff = today - birth;
   return Math.floor(diff / (1000 * 60 * 60 * 24));
 }
 
