@@ -376,6 +376,13 @@ async function saveIntake() {
     patient = {};
   }
 
+  //  const location = await getSmartLocation();
+
+  // patient.location = {
+  //   ...location,
+  //   timestamp: new Date().toISOString()
+  // };
+
   // update fields
   patient.firstName = firstName;
   patient.lastName = lastName;
@@ -799,6 +806,102 @@ window.addEventListener("load", () => {
     console.warn("showPatientList missing at startup");
   }
 });
+
+
+// ==========================
+// Locattion Feature for Heatmaps
+// ==========================
+//Engine
+// async function getGPS() {
+//   return new Promise((resolve, reject) => {
+//     navigator.geolocation.getCurrentPosition(resolve, reject, {
+//       enableHighAccuracy: true,
+//       timeout: 8000,
+//       maximumAge: 0
+//     });
+//   });
+// }
+// //GPS
+// async function getGPSLocation() {
+//   const pos = await getGPS();
+
+//   return {
+//     lat: pos.coords.latitude,
+//     lng: pos.coords.longitude,
+//     accuracy: pos.coords.accuracy,
+//     source: "gps"
+//   };
+// }
+// //IP fallback
+// async function getIPLocation() {
+//   const res = await fetch("https://ipapi.co/json/");
+//   const ip = await res.json();
+
+//   return {
+//     lat: ip.latitude,
+//     lng: ip.longitude,
+//     city: ip.city,
+//     region: ip.region,
+//     country: ip.country_name,
+//     accuracy: null,
+//     source: "ip"
+//   };
+// }
+
+// //Manual location
+
+// function getManualLocation() {
+//   const city = document.getElementById("city")?.value;
+//   const district = document.getElementById("district")?.value;
+//   const landmark = document.getElementById("landmark")?.value;
+
+//   return {
+//     city,
+//     district,
+//     landmark,
+//     text: `${landmark || ""} ${district || ""} ${city || ""}`.trim(),
+//     source: "manual"
+//   };
+// }
+
+// //Orchestrate
+// async function getSmartLocation() {
+//   // 1. Try GPS
+//   try {
+//     return await getGPSLocation();
+//   } catch (e) {
+//     console.warn("GPS failed:", e);
+//   }
+
+//   // 2. Try IP fallback
+//   try {
+//     return await getIPLocation();
+//   } catch (e) {
+//     console.warn("IP fallback failed:", e);
+//   }
+
+//   // 3. Force manual (last resort)
+//   return getManualLocation();
+// }
+
+
+
+
+// function normalize(lat, lng) {
+//   return {
+//     lat: Number(lat.toFixed(4)),
+//     lng: Number(lng.toFixed(4))
+//   };
+// }
+
+
+
+
+
+
+
+
+
 
 // ==========================
 // INIT
