@@ -128,3 +128,25 @@
 .section:first-of-type {
   font-size: 13px;
 }
+
+.clinical-item{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+}
+
+.clinical-label{
+  font-weight:600;
+}
+
+.clinical-value.danger{
+  color:#b00020;
+  font-weight:600;
+}
+
+@media print {
+  .clinical-value.danger{
+    color: black;
+    font-weight: 700;
+  }
+}

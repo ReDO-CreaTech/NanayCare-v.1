@@ -375,3 +375,33 @@ th, td {
   margin-bottom: 4px;
   color: var(--primary);
 } */
+
+
+/* =================== CLINICAL BLOCK =================== */
+
+.clinical-block{
+  margin-top:18px;
+  background: var(--card);
+  padding: var(--pad);
+  border-radius: var(--radius);
+}
+
+.clinical-block h4{
+  font-size:14px;
+  border-bottom:1px solid #000;
+  padding-bottom:3px;
+  margin-bottom:6px;
+  color: var(--text);
+}
+
+.clinical-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:6px 30px;
+  font-size:13px;
+}
+
+.clinical-grid div{
+  border-bottom:1px dotted #999;
+  padding-bottom:2px;
+}

@@ -218,16 +218,57 @@ function formatKey(key) {
 // ==========================
 // Clinical Data (auto-scan patient answers)
 // ==========================
+// function buildClinicalData(p) {
+//   const ignore = ["name", "ageDays", "weight", "classifications", "_id"];
+
+//   return Object.entries(p)
+//     .filter(([k]) => !ignore.includes(k))
+//     .map(([k, v]) => {
+//       if (typeof v === "boolean") {
+//         return `<p><strong>${formatKey(k)}:</strong> ${v ? "Yes" : "No"}</p>`;
+//       }
+//       return `<p><strong>${formatKey(k)}:</strong> ${v}</p>`;
+//     })
+//     .join("");
+// }
+
 function buildClinicalData(p) {
   const ignore = ["name", "ageDays", "weight", "classifications", "_id"];
+
+  const formatValue = (v) => {
+    if (v === null || v === undefined || v === "") return "—";
+
+    if (typeof v === "boolean") {
+      return v ? "Yes" : "No";
+    }
+
+    if (Array.isArray(v)) {
+      return v.length ? v.join(", ") : "—";
+    }
+
+    if (typeof v === "object") {
+      return JSON.stringify(v);
+    }
+
+    return v;
+  };
 
   return Object.entries(p)
     .filter(([k]) => !ignore.includes(k))
     .map(([k, v]) => {
-      if (typeof v === "boolean") {
-        return `<p><strong>${formatKey(k)}:</strong> ${v ? "Yes" : "No"}</p>`;
-      }
-      return `<p><strong>${formatKey(k)}:</strong> ${v}</p>`;
+      const value = formatValue(v);
+
+      const isDanger =
+        value === "Yes" || value === true;
+
+      return `
+        <div class="clinical-item">
+          <span class="clinical-label">${formatKey(k)}:</span>
+          <span class="clinical-value ${isDanger ? "danger" : ""}">
+            ${value}
+          </span>
+        </div>
+      `;
     })
     .join("");
 }
