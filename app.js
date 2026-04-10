@@ -401,19 +401,47 @@ function intake() {
   `));
 }
 
-function saveIntake() {
-  patient.name = document.getElementById("name").value.trim();
-  patient.ageDays = Number(document.getElementById("age").value);
-  patient.weight = Number(document.getElementById("weight").value);
+// function saveIntake() {
+//   patient.name = document.getElementById("name").value.trim();
+//   patient.ageDays = Number(document.getElementById("age").value);
+//   patient.weight = Number(document.getElementById("weight").value);
 
-  if (!patient.name || !patient.ageDays || !patient.weight) {
-    alert("Complete all fields");
-    return;
+//   if (!patient.name || !patient.ageDays || !patient.weight) {
+//     alert("Complete all fields");
+//     return;
+//   }
+
+//   initFlow();
+// }
+async function saveIntake() {
+  const name = document.getElementById("name").value.trim();
+  const dob = document.getElementById("dob").value;
+  const ageDays = Number(document.getElementById("age").value);
+  const weight = Number(document.getElementById("weight").value);
+
+  if (!name || !dob || !ageDays || !weight) {
+    return alert("Complete all fields");
   }
+
+  // 🔥 CHECK EXISTING PATIENT
+  const existing = await findExistingPatient(name, dob);
+
+  if (existing) {
+    if (!confirm("Patient already exists. Continue new assessment?")) return;
+
+    patient = { ...existing }; // load existing
+  } else {
+    patient = {};
+  }
+
+  // update fields
+  patient.name = name;
+  patient.dob = dob;
+  patient.ageDays = ageDays;
+  patient.weight = weight;
 
   initFlow();
 }
-
 // ==========================
 // INIT FLOW
 // ==========================
