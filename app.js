@@ -24,6 +24,17 @@ function unlockWorkerMode() {
   }
 }
 
+function logoutWorkerMode() {
+  appMode = "public";
+  alert("Logged out");
+
+  patient = {};
+  inFlow = false;
+  step = 0;
+
+  start(); // go back to intake
+}
+
 
 Object.defineProperty(window, "step", {
   set(v) {
@@ -93,6 +104,7 @@ const btn = e.target.closest("button[data-action]");
 
   if (isProcessing) return;
   if (action === "unlock") return unlockWorkerMode();
+  if (action === "logout") return logoutWorkerMode();
   if (action === "records") {
   if (appMode === "public") {
     alert("Access restricted in Public Mode");
@@ -610,6 +622,10 @@ function intake() {
     ${appMode === "worker" ? button("Records", "records") : ""}
       ${appMode === "public" 
   ? button("Health Worker Login", "unlock", "primary") 
+  : ""
+}
+${appMode === "worker" 
+  ? button("Logout", "logout", "danger") 
   : ""
 }
   `));
