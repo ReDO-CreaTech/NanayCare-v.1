@@ -23,6 +23,22 @@ function button(label, action, cls = "") {
   return `<button class="${cls}" data-action="${action}">${label}</button>`;
 }
 
+function formatAgeYMD(days) {
+  if (!days) return "-";
+
+  const y = Math.floor(days / 365);
+  const m = Math.floor((days % 365) / 30);
+  const d = days % 30;
+
+  return `${y}y ${m}m ${d}d`;
+}
+
+function calculateAgeDays(dob) {
+  if (!dob) return 0;
+  const diff = new Date() - new Date(dob);
+  return Math.floor(diff / (1000 * 60 * 60 * 24));
+}
+
 // ==========================
 // EVENT DELEGATION
 // ==========================
@@ -356,7 +372,8 @@ function intake() {
     <h2>Patient Intake</h2>
 
     <input id="name" placeholder="Full Name">
-    <input id="age" type="number" placeholder="Age (days)">
+    <input id="dob" type="date">
+    <input id="age" type="number" placeholder="Age (days)" readonly>
     <input id="weight" type="number" placeholder="Weight (kg)">
 
     ${button("Next", "next-intake", "primary")}
