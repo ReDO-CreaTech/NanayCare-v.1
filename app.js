@@ -42,30 +42,53 @@ function calculateAgeDays(dob) {
 // ==========================
 // EVENT DELEGATION
 // ==========================
+
+    document.addEventListener("change", (e) => {
+  if (e.target.id === "dob") {
+    const days = calculateAgeDays(e.target.value);
+    document.getElementById("age").value = days || "";
+  }
+});
+
 screen.addEventListener("click", async (e) => {
   const action = e.target.dataset.action;
   if (!action) return;
 
   try {
     if (action === "next-intake") return saveIntake();
-    if (action === "records") {
-      if (typeof showPatientList !== "function") {
-        throw new Error("showPatientList not loaded");
-      }
-      return showPatientList();
-    }
-
+    if (action === "records") return showPatientList();
     if (action === "yes") return ans(true);
     if (action === "no") return ans(false);
     if (action === "next-num") return ansNum();
     if (action === "next-sel") return ansSel();
     if (action === "restart") return start();
 
+    if (action === "delete") {
+      const id = e.target.dataset.id;
+      if (!id) return;
 
-    document.addEventListener("change", (e) => {
-  if (e.target.id === "dob") {
-    const days = calculateAgeDays(e.target.value);
-    document.getElementById("age").value = days || "";
+      if (!confirm("Delete this record?")) return;
+
+      await deletePatient(id);
+      return showPatientList();
+    }
+
+    if (action === "view") {
+      return handleView(e);
+    }
+
+    if (action === "reassess") {
+      return handleReassess(e);
+    }
+
+  } catch (err) {
+    console.error("ACTION ERROR:", err);
+
+    render(card(`
+      <h3>Something went wrong</h3>
+      <p>${err.message}</p>
+      <button data-action="restart">Restart</button>
+    `));
   }
 });
 
