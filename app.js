@@ -62,6 +62,14 @@ screen.addEventListener("click", async (e) => {
     if (action === "restart") return start();
 
 
+    document.addEventListener("change", (e) => {
+  if (e.target.id === "dob") {
+    const days = calculateAgeDays(e.target.value);
+    document.getElementById("age").value = days || "";
+  }
+});
+
+
   // ==========================
   // NEW CRUD ACTIONS
   // ==========================
