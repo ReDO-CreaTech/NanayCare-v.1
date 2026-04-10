@@ -859,21 +859,6 @@ async function showPatientList() {
   return;
 }
 
-    // render(card(`
-    //   <h2>Patient Records</h2>
-    //   ${data.map(p => `
-    //     <div class="card">
-    //       <strong>${p.name || "No name"}</strong><br>
-    //       Age: ${formatAgeYMD(p.ageDays)} days<br>
-    //       Weight: ${p.weight || "-"} kg
-
-    //       <div class="actions">
-    //         <button data-action="view" data-id="${p._id}">View</button>
-    //         <button data-action="delete" data-id="${p._id}">Delete</button>
-    //       </div>
-    //     </div>
-    //   `).join("")}
-    // `));
     render(card(`
   <h2>Patient Records</h2>
 
