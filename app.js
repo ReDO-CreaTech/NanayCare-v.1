@@ -2,11 +2,27 @@
 // GLOBAL STATE
 // ==========================
 let patient = {};
-// let step = 0;
+let appMode = "public"; // DEFAULT: public
 window.step = 0;
 let flow = [];
 let lang = "en";
 let isProcessing = false;
+let inFlow = false;
+
+
+const WORKER_CODE = "1234"; // change this
+
+function unlockWorkerMode() {
+  const code = prompt("Enter Health Worker Code:");
+
+  if (code === WORKER_CODE) {
+    appMode = "worker";
+    alert("Access granted");
+    safeRefresh();
+  } else {
+    alert("Invalid code");
+  }
+}
 
 
 Object.defineProperty(window, "step", {
@@ -73,13 +89,24 @@ function calculateAgeDays(dob) {
 screen.addEventListener("click", async (e) => {
 const btn = e.target.closest("button[data-action]");
   if (!btn) return;
-
-
   const action = btn.dataset.action;
+
+  if (isProcessing) return;
+  if (action === "unlock") return unlockWorkerMode();
+  if (action === "records") {
+  if (appMode === "public") {
+    alert("Access restricted in Public Mode");
+    return;
+  }
+  return showPatientList();
+}
+
+
+  // const action = btn.dataset.action;
 
   try {
     if (action === "next-intake") return saveIntake();
-    if (action === "records") return showPatientList();
+    // if (action === "records") return showPatientList();
     if (action === "yes") return ans(true);
     if (action === "no") return ans(false);
     if (action === "next-num") return ansNum();
@@ -253,6 +280,46 @@ document.addEventListener("input", (e) => {
   });
 });
 
+
+
+///Switch
+
+
+
+
+// function safeRefresh() {
+//   // detect current screen instead of forcing navigation
+
+//   if (flow && flow.length && step < flow.length) {
+//     renderQuestion(flow[step]);
+//     return;
+//   }
+
+//   if (window._lastScreen === "records") {
+//     showPatientList();
+//     return;
+//   }
+
+//   intake();
+// }
+function safeRefresh() {
+  if (inFlow) {
+    renderQuestion(flow[step]);
+    return;
+  }
+
+  if (window._lastScreen === "records") {
+    showPatientList();
+    return;
+  }
+
+  intake();
+}
+
+function setScreen(name) {
+  window._lastScreen = name;
+}
+
 // ==========================
 // Make keys human-readable (CRITICAL)
 // ==========================
@@ -261,6 +328,24 @@ function formatKey(key) {
   return key
     .replace(/([A-Z])/g, " $1")
     .replace(/^./, s => s.toUpperCase());
+}
+
+
+
+// ==========================
+// Mode Switch UI
+// ==========================
+
+function renderModeSwitch() {
+  return `
+    <div class="mode-switch">
+      <label>
+        <input type="checkbox" id="modeToggle" ${appMode === "worker" ? "checked" : ""}>
+        🏥 Health Worker Mode
+      </label>
+      <small>Current: ${appMode.toUpperCase()}</small>
+    </div>
+  `;
 }
 
 // ==========================
@@ -487,25 +572,64 @@ function start() {
 // ==========================
 // INTAKE
 // ==========================
+// function intake() {
+//   render(card(`
+//     <h2>Patient Intake</h2>
+
+//     <input id="firstName" placeholder="First Name">
+//     <input id="lastName" placeholder="Surname">
+//     <input id="dob" type="date" placeholder="Date of birth">
+//     <input id="age" type="number" placeholder="Age (days)" readonly>
+//     <input id="weight" type="number" placeholder="Weight (kg)">
+
+//     ${button("Next", "next-intake", "primary")}
+//     ${button("Records", "records")}
+//   `));
+// }
+// ${renderModeSwitch()}
 function intake() {
+  setScreen("intake");
   render(card(`
+    
+
     <h2>Patient Intake</h2>
 
-    <input id="firstName" placeholder="First Name">
-    <input id="lastName" placeholder="Surname">
+
+    ${appMode === "worker" ? `
+      <input id="firstName" placeholder="First Name">
+      <input id="lastName" placeholder="Surname">
+    ` : `
+      <p><strong>Public Mode:</strong> Anonymous patient intake</p>
+    `}
+
     <input id="dob" type="date">
     <input id="age" type="number" placeholder="Age (days)" readonly>
     <input id="weight" type="number" placeholder="Weight (kg)">
 
     ${button("Next", "next-intake", "primary")}
-    ${button("Records", "records")}
+    ${appMode === "worker" ? button("Records", "records") : ""}
+      ${appMode === "public" 
+  ? button("Health Worker Login", "unlock", "primary") 
+  : ""
+}
   `));
 }
 
 async function saveIntake() {
-  const firstName = document.getElementById("firstName").value.trim();
-  const lastName = document.getElementById("lastName").value.trim();
-  const name = `${firstName} ${lastName}`.trim();
+  // const firstName = document.getElementById("firstName").value.trim();
+  // const lastName = document.getElementById("lastName").value.trim();
+  // const name = `${firstName} ${lastName}`.trim();
+  const firstName = appMode === "worker"
+  ? document.getElementById("firstName")?.value.trim()
+  : "Anonymous";
+
+const lastName = appMode === "worker"
+  ? document.getElementById("lastName")?.value.trim()
+  : "";
+
+const name = appMode === "worker"
+  ? `${firstName} ${lastName}`.trim()
+  : "Anonymous Patient";
   const dob = document.getElementById("dob").value;
   const ageDays = Number(document.getElementById("age").value);
   const weight = Number(document.getElementById("weight").value);
@@ -540,6 +664,7 @@ async function saveIntake() {
 // ==========================
 function initFlow() {
   step = 0;
+  inFlow = true; 
 
   flow = patient.ageDays < 60 ? infantFlow : childFlow;
 
@@ -556,6 +681,7 @@ function initFlow() {
 // NEXT STEP
 // ==========================
 function next() {
+  if (!inFlow) return;
   while (step < flow.length) {
     const q = flow[step];
 
@@ -620,6 +746,7 @@ function renderQuestion(q) {
 // ANSWERS
 // ==========================
 function ans(value) {
+   if (!inFlow) return;
   const q = flow[step];
   if (!q) return;
 
@@ -643,6 +770,7 @@ function ans(value) {
 }
 
 function ansNum() {
+   if (!inFlow) return;
   const val = document.getElementById("val").value;
   if (val === "") return alert("Enter value");
 
@@ -660,6 +788,7 @@ function ansNum() {
 }
 
 function ansSel() {
+   if (!inFlow) return;
   const val = document.getElementById("val").value;
   if (!val) return alert("Select a value");
 
@@ -677,6 +806,11 @@ function ansSel() {
 // PATIENT LIST (CRUD VIEW)
 // ==========================
 async function showPatientList() {
+  if (appMode !== "worker") {
+    alert("Unauthorized");
+    return;
+  }
+  setScreen("records");
   try {
     if (typeof showPatientList !== "function") {
   console.error("❌ showPatientList missing (scope issue)");
@@ -694,6 +828,15 @@ async function showPatientList() {
     if (!data || !data.length) {
       return render(card("<h3>No records yet</h3>"));
     }
+
+    if (appMode === "public") {
+  render(card(`
+    ${renderModeSwitch()}
+    <h3>Records Disabled</h3>
+    <p>Public mode does not allow record browsing.</p>
+  `));
+  return;
+}
 
     // render(card(`
     //   <h2>Patient Records</h2>
@@ -763,6 +906,7 @@ async function result() {
   }
 
   isProcessing = true;
+   inFlow = false;
 
   // 🔒 HARD FREEZE STEP
   step = flow.length;
@@ -856,7 +1000,10 @@ await savePatient(record);
   window.currentPatient = record;
   patient = { ...record };
 
+  setScreen("result");
+
   render(buildResultUI(results));
+    // inFlow = false;
     isProcessing = false;
 
 }

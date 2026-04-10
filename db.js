@@ -71,6 +71,9 @@ window.getAllPatients = async function() {
 };
 
 window.getPatient = async function(id) {
+  if (appMode !== "worker") {
+    throw new Error("Unauthorized access");
+  }
   if (!db) return null;
   try {
     return await db.get(id);
