@@ -52,13 +52,17 @@ function calculateAgeDays(dob) {
     document.addEventListener("change", (e) => {
   if (e.target.id === "dob") {
     const days = calculateAgeDays(e.target.value);
-    document.getElementById("age").value = days || "";
+    const ageInput = document.getElementById("age");
+  if (ageInput) ageInput.value = days || "";
   }
 });
 
 screen.addEventListener("click", async (e) => {
+const btn = e.target.closest("button[data-action]");
+  if (!btn) return;
+
+
   const action = e.target.dataset.action;
-  if (!action) return;
 
   try {
     if (action === "next-intake") return saveIntake();
@@ -80,8 +84,56 @@ screen.addEventListener("click", async (e) => {
     }
 
     if (action === "view") {
-      return handleView(e);
-    }
+  const id = e.target.dataset.id;
+  if (!id) return;
+
+  const p = await getPatient(id);
+  if (!p) throw new Error("Record not found");
+
+  patient = p;
+
+  return render(card(`
+    <div class="report-header">
+      <img src="ravenbilLogo.png" class="logoRender">
+      <div class="company">
+        <h2>RAVENBIL HERRERA</h2>
+        <p>Research and Experimental Development in Health Sciences</p>
+      </div>
+    </div>
+
+    <h2>Patient Record</h2>
+
+    <div class="section">
+      <h3>Basic Info</h3>
+      <p><strong>Name:</strong> ${p.name || "-"}</p>
+      <p><strong>DOB:</strong> ${p.dob || "-"}</p>
+      <p><strong>Age:</strong> ${formatAgeYMD(p.ageDays)}</p>
+      <p><strong>Weight:</strong> ${p.weight || "-"} kg</p>
+    </div>
+
+    <div class="section">
+      <h3>Clinical Data</h3>
+      ${buildClinicalData(p)}
+    </div>
+
+    <div class="section">
+      <h3>Assessment</h3>
+      ${buildAssessment(p.classifications)}
+    </div>
+
+    <div class="section">
+      <h3>Timeline</h3>
+      ${buildTimeline(p)}
+    </div>
+
+    <div class="actions">
+      <button data-action="records">Back</button>
+      <button data-action="reassess" data-id="${p._id}">New Assessment</button>
+      <button data-action="restart">Exit</button>
+      <button onclick="printRecord()">Print</button>
+    </div>
+  `));
+}
 
     if (action === "reassess") {
       return handleReassess(e);
@@ -98,157 +150,6 @@ screen.addEventListener("click", async (e) => {
   }
 });
 
-
-  // ==========================
-  // NEW CRUD ACTIONS
-  // ==========================
-
-    if (action === "delete") {
-      const id = e.target.dataset.id;
-      if (!id) return;
-
-      if (!confirm("Delete this record?")) return;
-
-      await deletePatient(id);
-      return showPatientList();
-    }
-
-    if (action === "view") {
-      const id = e.target.dataset.id;
-      if (!id) return;
-
-      const p = await getPatient(id);
-      if (!p) throw new Error("Record not found");
-
-      patient = p;
-
-      render(card(`
-
-        <div class="report-header">
-          
-          <img src="ravenbilLogo.png" class="logoRender">
-
-          <div class="company">
-            <h2>RAVENBIL HERRERA</h2>
-            <p>Research and Experimental Development in Health Sciences</p>
-          </div>
-        </div>
-      <h2>Patient Record</h2>
-
-      <div class="section">
-        <h3>Basic Info</h3>
-        <p><strong>Name:</strong> ${p.name || "-"}</p>
-        <p><strong>DOB:</strong> ${p.dob || "-"}</p>
-        <p><strong>Age:</strong> ${formatAgeYMD(p.ageDays)}</p>
-        <p><strong>Weight:</strong> ${p.weight || "-"} kg</p>
-      </div>
-
-      <div class="section">
-        <h3>Clinical Data</h3>
-        ${buildClinicalData(p)}
-      </div>
-
-      <div class="section">
-        <h3>Assessment</h3>
-        ${buildAssessment(p.classifications)}
-      </div>
-
-      <div class="section">
-        <h3>Timeline</h3>
-        ${buildTimeline(p)}
-      </div>
-
-      <div class="actions">
-        <button data-action="records">Back</button>
-        <button data-action="reassess" data-id="${p._id}">New Assessment</button>
-        <button data-action="restart">Exit</button>
-        <button onclick="printRecord()">Print</button>
-      </div>
-    `));
-    }
-
-
-    if (action === "reassess") {
-  const id = e.target.dataset.id;
-  const p = await getPatient(id);
-
-  if (!p) return alert("Patient not found");
-
-  patient = { ...p };
-
-  return initFlow(); // 🔥 reuse flow
-}
-
-  //   if (action === "edit") {
-  //     const id = e.target.dataset.id;
-  //     const p = await getPatient(id);
-
-  //     patient = p;
-
-  //     render(card(`
-  //       <h2>Edit Patient</h2>
-
-  //       <input id="name" value="${p.name || ""}" placeholder="Name">
-  //       <input id="age" type="number" value="${p.ageDays || ""}" placeholder="Age (days)">
-  //       <input id="weight" type="number" value="${p.weight || ""}" placeholder="Weight">
-
-  //       <textarea id="note" placeholder="Doctor notes..." style="
-  //   background:#f8fafc;
-  //   border-left:4px solid #2563eb;
-  //   padding:10px;
-  //   border-radius:8px;
-  //   margin-top:10px;
-  //   width: 100%;
-  //   height: 80px;
-  // "></textarea>
-  //       <input id="doctorName" placeholder="Doctor Name">
-  //       <input id="doctorSignature" placeholder="Signature (type full name)">
-
-  //       <button data-action="update">Save Changes</button>
-  //       <button data-action="records">Cancel</button>
-  //     `));
-  //   }
-
-  //   if (action === "update") {
-  //     const updated = {
-  //       ...patient, // KEEP _id and _rev
-  //       name: document.getElementById("name").value,
-  //       ageDays: Number(document.getElementById("age").value),
-  //       weight: Number(document.getElementById("weight").value),
-  //       updatedAt: new Date().toISOString()
-  //     };
-
-      // 🔥 CRITICAL: timeline history
-//   const note = document.getElementById("note").value;
-//   const doctorName = document.getElementById("doctorName").value;
-//   const signature = document.getElementById("doctorSignature").value;
-//   const soap = buildSOAP(updated, updated.classifications || []);
-
-//   updated.history = updated.history || [];
-//   updated.history.push({
-//     date: updated.updatedAt,
-//     soap,
-//     note,
-//     doctor: {
-//       name: doctorName,
-//       signature: signature
-//     }
-//       });
-
-//       await savePatient(updated);
-//       return showPatientList();
-//     }
-
-//   } catch (err) {
-//     console.error("ACTION ERROR:", err);
-
-//     render(card(`
-//       <h3>Something went wrong</h3>
-//       <p>${err.message}</p>
-//       <button data-action="restart">Restart</button>
-//     `));
-//   }
-// });
 
 // ==========================
 // Make keys human-readable (CRITICAL)
@@ -373,7 +274,11 @@ function buildKeyFindings(s) {
 // ==========================
 
 function normalize(str) {
-  return str.toLowerCase().replace(/\s+/g, "").trim();
+    return (str || "")
+    .toString()
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .trim();
 }
 
 async function findExistingPatient(name, dob) {
@@ -493,6 +398,7 @@ async function saveIntake() {
 function initFlow() {
   step = 0;
 
+  flow = patient.ageDays < 60 ? infantFlow : childFlow;
   flow = patient.ageDays < 60
     ? infantFlow
     : childFlow;
