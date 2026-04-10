@@ -366,15 +366,18 @@ function buildKeyFindings(s) {
 // PATIENT IDENTITY MATCHING
 // ==========================
 
+function normalize(str) {
+  return str.toLowerCase().replace(/\s+/g, "").trim();
+}
+
 async function findExistingPatient(name, dob) {
   const all = await getAllPatients();
 
   return all.find(p =>
-    p.name?.toLowerCase().trim() === name.toLowerCase().trim() &&
+    normalize(p.name) === normalize(name) &&
     p.dob === dob
   );
 }
-
 // ==========================
 // SOAP OBJECT
 // ==========================
