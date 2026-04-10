@@ -655,7 +655,12 @@ const name = appMode === "worker"
   }
 
   // 🔥 CHECK EXISTING PATIENT
-  const existing = await findExistingPatient(firstName, lastName, dob);
+  // const existing = await findExistingPatient(firstName, lastName, dob);
+  let existing = null;
+
+  if (appMode === "worker") {
+    existing = await findExistingPatient(firstName, lastName, dob);
+  }
 
   if (existing) {
     if (!confirm("Patient already exists. Continue new assessment?")) return;
@@ -916,37 +921,31 @@ async function showPatientList() {
 // RESULT
 // ==========================
 async function result() {
+
   if (isProcessing) {
     console.warn("🚫 BLOCKED duplicate result()");
     return;
   }
 
   isProcessing = true;
-   inFlow = false;
-
-  // 🔒 HARD FREEZE STEP
+  inFlow = false;
   step = flow.length;
 
-render(card(`<h2>Processing...</h2>`));
-await new Promise(r => setTimeout(r, 50));
+  render(card(`<h2>Processing...</h2>`));
+  await new Promise(r => setTimeout(r, 50));
 
-let results = patient.ageDays < 60
-  ? classifyInfant?.(patient)
-  : classifyChild?.(patient);
+  let results = patient.ageDays < 60
+    ? classifyInfant?.(patient)
+    : classifyChild?.(patient);
 
-  
+  if (!Array.isArray(results)) {
+    results = [{
+      label: "No IMCI classification",
+      level: "GREEN",
+      action: "HOME"
+    }];
+  }
 
-// SAFETY FALLBACK
-if (!Array.isArray(results)) {
-  console.error("Classification failed:", results);
-  results = [{
-    label: "No IMCI classification",
-    level: "GREEN",
-    action: "HOME"
-  }];
-}
-
-  // normalize actions → array
   results = results.map(r => ({
     ...r,
     action: Array.isArray(r.action)
@@ -954,76 +953,78 @@ if (!Array.isArray(results)) {
       : String(r.action).split(",").map(a => a.trim())
   }));
 
-  // prioritize severity
   results = prioritize(results);
 
- const soap = buildSOAP(patient, results);
+  const soap = buildSOAP(patient, results);
 
-let record;
+  let record = null;
 
-if (patient._id) {
-  // EXISTING PATIENT
-  record = await getPatient(patient._id);
+  // ==========================
+  // 🔒 ONLY DB PART IS CONDITIONAL
+  // ==========================
+  if (appMode === "worker") {
 
-  record = {
-    ...record,
-    ...patient,
-    history: record.history || [],
-    classifications: results,
-    updatedAt: new Date().toISOString()
-  };
+    if (patient._id) {
+      record = await getPatient(patient._id);
 
-} else {
-  // NEW PATIENT
-  record = await createPatient({
-    ...patient,
-    classifications: results
-  });
-}
+      record = {
+        ...record,
+        ...patient,
+        history: record.history || [],
+        classifications: results,
+        updatedAt: new Date().toISOString()
+      };
 
-// 🔒 ALWAYS APPEND HISTORY
-record.history = record.history || [];
+    } else {
+      record = await createPatient({
+        ...patient,
+        classifications: results
+      });
+    }
 
+    record.history = record.history || [];
 
-const doctorName = prompt("Doctor Name:");
-const signature = prompt("Signature:");
+    const doctorName = prompt("Doctor Name:");
+    const signature = prompt("Signature:");
 
+    if (isMeaningfulSOAP(soap)) {
+      const last = record.history[record.history.length - 1];
 
-if (isMeaningfulSOAP(soap)) {
-  const last = record.history[record.history.length - 1];
+      const isDuplicate =
+        last &&
+        last.soap &&
+        JSON.stringify(last.soap) === JSON.stringify(soap);
 
-  const isDuplicate =
-    last &&
-    last.soap &&
-    JSON.stringify(last.soap) === JSON.stringify(soap);
+      if (!isDuplicate) {
+        record.history.push({
+          date: new Date().toISOString(),
+          soap,
+          doctor: {
+            name: doctorName || "Unknown",
+            signature: signature || "-"
+          },
+          locked: true
+        });
+      }
+    }
 
-  if (!isDuplicate) {
-    record.history.push({
-      date: new Date().toISOString(),
-      soap,
-      doctor: {
-        name: doctorName || "Unknown",
-        signature: signature || "-"
-      },
-      locked: true
-    });
+    await savePatient(record);
+    patient = { ...record };
+
+  } else {
+    // PUBLIC MODE
+    console.log("Public mode → not saving");
+    patient.classifications = results;
   }
 
-}
-
-await savePatient(record);
-
-  window.currentPatient = record;
-  patient = { ...record };
-
+  // ==========================
+  // ✅ ALWAYS RUN UI
+  // ==========================
   setScreen("result");
-
   render(buildResultUI(results));
-    // inFlow = false;
-    isProcessing = false;
 
+  isProcessing = false;
 }
-
 // ==========================
 // RESULT UI
 // ==========================
