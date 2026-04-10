@@ -366,7 +366,7 @@ async function saveIntake() {
   }
 
   // 🔥 CHECK EXISTING PATIENT
-  const existing = await findExistingPatient(name, dob);
+  const existing = await findExistingPatient(firstName, lastName, dob);
 
   if (existing) {
     if (!confirm("Patient already exists. Continue new assessment?")) return;
