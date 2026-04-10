@@ -233,7 +233,7 @@ function formatKey(key) {
 // }
 
 function buildClinicalData(p) {
-  const ignore = ["name", "ageDays", "weight", "classifications", "_id"];
+  const ignore = ["name", "ageDays", "weight", "classifications", "_id", "history", "createdAt", "updatedAt", "_rev", "dob", "firstName", "lastName"];
 
   const formatValue = (v) => {
     if (v === null || v === undefined || v === "") return "—";
