@@ -7,6 +7,17 @@ let flow = [];
 let lang = "en";
 let isProcessing = false;
 
+
+Object.defineProperty(window, "step", {
+  set(v) {
+    console.trace("STEP CHANGED:", v);
+    window._step = v;
+  },
+  get() {
+    return window._step;
+  }
+});
+
 const screen = document.getElementById("app");
 
 // ==========================
@@ -513,6 +524,12 @@ function initFlow() {
 
   flow = patient.ageDays < 60 ? infantFlow : childFlow;
 
+   if (!Array.isArray(flow)) {
+    console.error("FLOW ERROR:", flow);
+    flow = [];
+  }
+
+  updateProgress();
   next();
 }
 
@@ -535,6 +552,7 @@ function next() {
   return result();
 }
 
+  updateProgress();
   renderQuestion(flow[step]);
 }
 
@@ -542,6 +560,7 @@ function next() {
 // QUESTION RENDERER
 // ==========================
 function renderQuestion(q) {
+  updateProgress();
   const label = q.label?.[lang] || q.label;
 
   if (q.type === "boolean") {
@@ -600,6 +619,7 @@ function ans(value) {
   }
 
   step++;
+  updateProgress();
   next();
 }
 
@@ -616,6 +636,7 @@ function ansNum() {
   }
 
   step++;
+  updateProgress();
   next();
 }
 
@@ -627,6 +648,7 @@ function ansSel() {
   patient[q.id] = val;
 
   step++;
+  updateProgress();
   next();
 }
 
@@ -899,6 +921,28 @@ function buildResultUI(results) {
   `);
 }
 
+
+// ==========================
+// Progressive Bar
+// ==========================
+
+function updateProgress() {
+  const bar = document.getElementById("progressBar");
+  const text = document.getElementById("progressText");
+
+  if (!bar || !Array.isArray(flow) || flow.length === 0) return;
+
+  // 🔥 ALWAYS READ FROM SINGLE SOURCE OF TRUTH
+  const currentStep = Number(window._step ?? 0);
+
+  const total = flow.length;
+  const current = Math.min(currentStep + 1, total);
+
+  const percent = (current / total) * 100;
+
+  bar.style.width = percent + "%";
+  text.textContent = `Step ${current} of ${total}`;
+}
 // ==========================
 // health check system
 // ==========================
