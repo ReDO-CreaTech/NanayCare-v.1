@@ -228,6 +228,31 @@ async function handleReassess(btn) {
   initFlow();
 }
 
+
+document.addEventListener("input", (e) => {
+  if (e.target.id !== "searchInput") return;
+
+  const query = e.target.value.toLowerCase().trim();
+  const items = document.querySelectorAll(".patient-item");
+
+  items.forEach(item => {
+    const name = item.dataset.name;
+    const dob = item.dataset.dob;
+    const id = item.dataset.recordid;
+
+    // Match rules:
+    // 1. ID match
+    // 2. Name match
+    // 3. Name + DOB combined match
+    const match =
+      id.includes(query) ||
+      name.includes(query) ||
+      (name + dob).replace(/-/g, "").includes(query.replace(/-/g, ""));
+
+    item.style.display = match ? "block" : "none";
+  });
+});
+
 // ==========================
 // Make keys human-readable (CRITICAL)
 // ==========================
@@ -500,13 +525,6 @@ async function saveIntake() {
     patient = {};
   }
 
-  //  const location = await getSmartLocation();
-
-  // patient.location = {
-  //   ...location,
-  //   timestamp: new Date().toISOString()
-  // };
-
   // update fields
   patient.firstName = firstName;
   patient.lastName = lastName;
@@ -677,21 +695,50 @@ async function showPatientList() {
       return render(card("<h3>No records yet</h3>"));
     }
 
-    render(card(`
-      <h2>Patient Records</h2>
-      ${data.map(p => `
-        <div class="card">
-          <strong>${p.name || "No name"}</strong><br>
-          Age: ${formatAgeYMD(p.ageDays)} days<br>
-          Weight: ${p.weight || "-"} kg
+    // render(card(`
+    //   <h2>Patient Records</h2>
+    //   ${data.map(p => `
+    //     <div class="card">
+    //       <strong>${p.name || "No name"}</strong><br>
+    //       Age: ${formatAgeYMD(p.ageDays)} days<br>
+    //       Weight: ${p.weight || "-"} kg
 
-          <div class="actions">
-            <button data-action="view" data-id="${p._id}">View</button>
-            <button data-action="delete" data-id="${p._id}">Delete</button>
-          </div>
+    //       <div class="actions">
+    //         <button data-action="view" data-id="${p._id}">View</button>
+    //         <button data-action="delete" data-id="${p._id}">Delete</button>
+    //       </div>
+    //     </div>
+    //   `).join("")}
+    // `));
+    render(card(`
+  <h2>Patient Records</h2>
+
+  <input 
+    id="searchInput" 
+    placeholder="Search by ID or Name + DOB..."
+    style="width:100%; padding:10px; margin-bottom:10px;"
+  />
+
+  <div id="patientList">
+    ${data.map(p => `
+      <div class="card patient-item"
+           data-id="${p._id}"
+           data-name="${(p.name || "").toLowerCase()}"
+           data-dob="${p.dob || ""}"
+           data-recordid="${p._id || ""}">
+
+        <strong>${p.name || "No name"}</strong><br>
+        Age: ${formatAgeYMD(p.ageDays)} days<br>
+        Weight: ${p.weight || "-"} kg
+
+        <div class="actions">
+          <button data-action="view" data-id="${p._id}">View</button>
+          <button data-action="delete" data-id="${p._id}">Delete</button>
         </div>
-      `).join("")}
-    `));
+      </div>
+    `).join("")}
+  </div>
+`));
 
   } catch (err) {
     console.error("showPatientList error:", err);
