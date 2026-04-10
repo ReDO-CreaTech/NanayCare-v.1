@@ -634,7 +634,7 @@ async function showPatientList() {
       ${data.map(p => `
         <div class="card">
           <strong>${p.name || "No name"}</strong><br>
-          Age: ${p.ageDays || "-"} days<br>
+          Age: ${formatAgeYMD(p.ageDays)} days<br>
           Weight: ${p.weight || "-"} kg
 
           <div class="actions">
