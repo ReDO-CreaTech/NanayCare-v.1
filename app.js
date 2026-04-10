@@ -326,6 +326,18 @@ function buildKeyFindings(s) {
 }
 
 
+// ==========================
+// PATIENT IDENTITY MATCHING
+// ==========================
+
+async function findExistingPatient(name, dob) {
+  const all = await getAllPatients();
+
+  return all.find(p =>
+    p.name?.toLowerCase().trim() === name.toLowerCase().trim() &&
+    p.dob === dob
+  );
+}
 
 // ==========================
 // SOAP OBJECT
