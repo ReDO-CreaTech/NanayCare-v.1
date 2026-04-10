@@ -2,7 +2,8 @@
 // GLOBAL STATE
 // ==========================
 let patient = {};
-let step = 0;
+// let step = 0;
+window.step = 0;
 let flow = [];
 let lang = "en";
 let isProcessing = false;
@@ -933,7 +934,7 @@ function updateProgress() {
   if (!bar || !Array.isArray(flow) || flow.length === 0) return;
 
   // 🔥 ALWAYS READ FROM SINGLE SOURCE OF TRUTH
-  const currentStep = Number(window._step ?? 0);
+  const currentStep = Number(step ?? 0);
 
   const total = flow.length;
   const current = Math.min(currentStep + 1, total);

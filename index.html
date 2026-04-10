@@ -104,21 +104,7 @@
   <!-- ================= WIZARD LOGIC ================= -->
   <script>
     // Simple wizard progress handler
-    function updateProgress(step, total) {
-      const percent = total ? (step / total) * 100 : 10;
-      const bar = document.getElementById("progressBar");
-      const text = document.getElementById("progressText");
-
-      if (bar) bar.style.width = percent + "%";
-      if (text) text.innerText = "Step " + (step + 1);
-    }
-
-    // Hook into your flow (light integration)
-    const originalNext = window.next;
-    window.next = function () {
-      updateProgress(window.step || 0, window.flow?.length || 1);
-      originalNext();
-    };
+  
 
     // FAB quick start
     document.getElementById("quickStartBtn")
