@@ -190,36 +190,36 @@ screen.addEventListener("click", async (e) => {
   //     };
 
       // 🔥 CRITICAL: timeline history
-  const note = document.getElementById("note").value;
-  const doctorName = document.getElementById("doctorName").value;
-  const signature = document.getElementById("doctorSignature").value;
-  const soap = buildSOAP(updated, updated.classifications || []);
+//   const note = document.getElementById("note").value;
+//   const doctorName = document.getElementById("doctorName").value;
+//   const signature = document.getElementById("doctorSignature").value;
+//   const soap = buildSOAP(updated, updated.classifications || []);
 
-  updated.history = updated.history || [];
-  updated.history.push({
-    date: updated.updatedAt,
-    soap,
-    note,
-    doctor: {
-      name: doctorName,
-      signature: signature
-    }
-      });
+//   updated.history = updated.history || [];
+//   updated.history.push({
+//     date: updated.updatedAt,
+//     soap,
+//     note,
+//     doctor: {
+//       name: doctorName,
+//       signature: signature
+//     }
+//       });
 
-      await savePatient(updated);
-      return showPatientList();
-    }
+//       await savePatient(updated);
+//       return showPatientList();
+//     }
 
-  } catch (err) {
-    console.error("ACTION ERROR:", err);
+//   } catch (err) {
+//     console.error("ACTION ERROR:", err);
 
-    render(card(`
-      <h3>Something went wrong</h3>
-      <p>${err.message}</p>
-      <button data-action="restart">Restart</button>
-    `));
-  }
-});
+//     render(card(`
+//       <h3>Something went wrong</h3>
+//       <p>${err.message}</p>
+//       <button data-action="restart">Restart</button>
+//     `));
+//   }
+// });
 
 // ==========================
 // Make keys human-readable (CRITICAL)
@@ -675,33 +675,46 @@ if (!Array.isArray(results)) {
   //   ...patient,
   //   classifications: results
   // }, true);
-  const soap = buildSOAP(patient, results);
+ const soap = buildSOAP(patient, results);
 
-  const record = await createPatient({
+let record;
+
+if (patient._id) {
+  // EXISTING PATIENT
+  record = await getPatient(patient._id);
+
+  record = {
+    ...record,
     ...patient,
     classifications: results,
-    soap
+    updatedAt: new Date().toISOString()
+  };
+
+} else {
+  // NEW PATIENT
+  record = await createPatient({
+    ...patient,
+    classifications: results
   });
-    record.history = record.history || [];
-    record.history.push({
-      date: new Date().toISOString(),
-      soap
-    });
+}
 
-  const doctorName = prompt("Doctor Name:");
-  const signature = prompt("Type your signature:");
-  record.history = record.history || [];
-  record.history.push({
-    date: new Date().toISOString(),
-    soap,
-    doctor: {
-      name: doctorName,
-      signature: signature
-    }
-  });
+// 🔒 ALWAYS APPEND HISTORY
+record.history = record.history || [];
 
+const doctorName = prompt("Doctor Name:");
+const signature = prompt("Signature:");
 
-  await savePatient(record);
+record.history.push({
+  date: new Date().toISOString(),
+  soap,
+  doctor: {
+    name: doctorName || "Unknown",
+    signature: signature || "-"
+  },
+  locked: true
+});
+
+await savePatient(record);
 
   window.currentPatient = record;
   patient = { ...record };
