@@ -1,0 +1,130 @@
+/* ================= PRINT DOCUMENT ================= */
+
+@media print {
+
+  /* ---------- A4 PAGE ---------- */
+  @page {
+    size: A4;
+    margin: 25mm;
+  }
+
+  body{
+    font-family: Arial, Helvetica, sans-serif;
+    background: white;
+    color: #000;
+    max-width: 180mm;
+    margin: auto;
+    line-height: 1.5;
+  }
+
+  /* ---------- HIDE UI ---------- */
+  .actions,
+  button,
+  .fab,
+  .navbar {
+    display: none !important;
+  }
+
+  /* ---------- REMOVE APP CARD STYLE ---------- */
+  .card{
+    box-shadow: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .content{
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+  }
+
+  /* ---------- HEADER ---------- */
+  .report-header{
+    display: flex;
+    align-items: center;
+    border-bottom: 2px solid #000;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+  }
+
+  .logoRender{
+    width: 70px;
+    margin-right: 15px;
+  }
+
+  .company h2{
+    margin: 0;
+    font-size: 20px;
+  }
+
+  .company p{
+    margin: 0;
+    font-size: 12px;
+  }
+
+  /* ---------- SECTIONS ---------- */
+  .section{
+    margin-top: 24px;
+  }
+
+  .section h3{
+    border-bottom: 1px solid #000;
+    padding-bottom: 4px;
+    margin-bottom: 10px;
+  }
+
+  /* ---------- PATIENT FORM LAYOUT ---------- */
+  .patient-grid{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 40px;
+    margin-bottom: 20px;
+  }
+
+  .field{
+    display: flex;
+  }
+
+  .field label{
+    width: 90px;
+    font-weight: bold;
+  }
+
+  .field span{
+    flex: 1;
+    border-bottom: 1px solid #000;
+  }
+
+  /* ---------- RESULTS ---------- */
+  .result{
+    border: none;
+    padding: 0;
+    margin-top: 10px;
+  }
+
+  .result h3{
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  /* ---------- TIMELINE ---------- */
+  .card{
+    border: none;
+    padding: 0;
+    margin-top: 10px;
+  }
+
+  /* ---------- SIGNATURE ---------- */
+  .signature{
+    margin-top: 40px;
+    border-top: 1px solid #000;
+    width: 220px;
+    padding-top: 5px;
+  }
+
+}
+
+.section:first-of-type {
+  font-size: 13px;
+}

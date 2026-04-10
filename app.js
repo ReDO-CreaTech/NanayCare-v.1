@@ -104,11 +104,57 @@ const btn = e.target.closest("button[data-action]");
     <h2>Patient Record</h2>
 
     <div class="section">
+    <div class="section">
+  <h3>Record Info</h3>
+
+  <div class="patient-grid">
+
+    <div class="field">
+      <label>Record ID:</label>
+      <span>${p._id || "-"}</span>
+    </div>
+
+    <div class="field">
+      <label>Revision:</label>
+      <span>${p._rev || "-"}</span>
+    </div>
+
+    <div class="field">
+      <label>Created At:</label>
+      <span>${new Date(p.createdAt).toLocaleString()}</span>
+    </div>
+
+    <div class="field">
+      <label>Updated At:</label>
+      <span>${new Date(p.updatedAt).toLocaleString()}</span>
+    </div>
+
+  </div>
+</div>
       <h3>Basic Info</h3>
-      <p><strong>Name:</strong> ${p.name || "-"}</p>
-      <p><strong>DOB:</strong> ${p.dob || "-"}</p>
-      <p><strong>Age:</strong> ${formatAgeYMD(p.ageDays)}</p>
-      <p><strong>Weight:</strong> ${p.weight || "-"} kg</p>
+<div class="patient-grid">
+
+  <div class="field">
+    <label>Name:</label>
+    <span>${p.name || "-"}</span>
+  </div>
+
+  <div class="field">
+    <label>DOB:</label>
+    <span>${p.dob || "-"}</span>
+  </div>
+
+  <div class="field">
+    <label>Age:</label>
+    <span>${formatAgeYMD(p.ageDays)}</span>
+  </div>
+
+  <div class="field">
+    <label>Weight:</label>
+    <span>${p.weight || "-"} kg</span>
+  </div>
+
+</div>
     </div>
 
     <div class="section">
