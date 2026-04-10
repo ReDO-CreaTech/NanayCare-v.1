@@ -614,6 +614,7 @@ function intake() {
       <p><strong>Public Mode:</strong> Anonymous patient intake</p>
     `}
 
+    <label for="dob"><strong>Date of Birth🔽</strong></label>
     <input id="dob" type="date">
     <input id="age" type="number" placeholder="Age (days)" readonly>
     <input id="weight" type="number" placeholder="Weight (kg)">
