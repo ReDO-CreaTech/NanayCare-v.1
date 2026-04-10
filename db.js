@@ -43,12 +43,7 @@ window.createPatient = async function(data) {
     _id: "patient_" + now,
     createdAt: now,
     updatedAt: now,
-    history: [
-      {
-        date: now,
-        snapshot: data
-      }
-    ]
+    history: []
   };
 };
 

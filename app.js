@@ -5,6 +5,7 @@ let patient = {};
 let step = 0;
 let flow = [];
 let lang = "en";
+let isProcessing = false;
 
 const screen = document.getElementById("app");
 
@@ -194,14 +195,24 @@ const btn = e.target.closest("button[data-action]");
       <button data-action="restart">Restart</button>
     `));
   }
+
+
+
+  if (isProcessing) return;
 });
 
 
-
-function handleReassess(btn) {
+async function handleReassess(btn) {
   const id = btn.dataset.id;
 
-  patient = { _id: id };
+  const existing = await getPatient(id);
+  if (!existing) {
+    alert("Patient not found");
+    return;
+  }
+
+  patient = { ...existing }; // ✅ KEEP FULL DATA
+
   initFlow();
 }
 
@@ -218,19 +229,6 @@ function formatKey(key) {
 // ==========================
 // Clinical Data (auto-scan patient answers)
 // ==========================
-// function buildClinicalData(p) {
-//   const ignore = ["name", "ageDays", "weight", "classifications", "_id"];
-
-//   return Object.entries(p)
-//     .filter(([k]) => !ignore.includes(k))
-//     .map(([k, v]) => {
-//       if (typeof v === "boolean") {
-//         return `<p><strong>${formatKey(k)}:</strong> ${v ? "Yes" : "No"}</p>`;
-//       }
-//       return `<p><strong>${formatKey(k)}:</strong> ${v}</p>`;
-//     })
-//     .join("");
-// }
 
 function buildClinicalData(p) {
   const ignore = ["name", "ageDays", "weight", "classifications", "_id", "history", "createdAt", "updatedAt", "_rev", "dob", "firstName", "lastName"];
@@ -294,6 +292,7 @@ function buildTimeline(p) {
   if (!p.history || !p.history.length) {
     return "<p>No history</p>";
   }
+  console.log("HISTORY DEBUG:", p.history);
 
   return p.history.map(h => {
     const s = h.soap || {}; // 🔥 USE SOAP NOW (not snapshot)
@@ -396,6 +395,24 @@ function buildSOAP(patient, classifications) {
     plan: classifications.map(c => c.action).flat().join(", ")
   };
 }
+
+function isMeaningfulSOAP(soap) {
+  if (!soap) return false;
+
+  const clean = (v) =>
+    (v || "")
+      .toString()
+      .replace(/[-–—]/g, "") // remove dashes
+      .trim()
+      .toLowerCase();
+
+  const s = clean(soap.subjective);
+  const o = clean(soap.objective);
+  const a = clean(soap.assessment);
+  const p = clean(soap.plan);
+
+  return !!(s || o || a || p);
+}
 // ==========================
 // OBJECTIVE MEASURE
 // ==========================
@@ -404,7 +421,7 @@ function buildObjective(p) {
 
   if (p.weight) o.push(`Weight: ${p.weight} kg`);
   if (p.temperature) o.push(`Temp: ${p.temperature} °C`);
-  if (p.ageDays) o.push(`Age: ${p.ageDays} days`);
+  if (p.ageDays) o.push(`Age: ${formatAgeYMD(p.ageDays)}`);
 
   return o.join(", ");
 }
@@ -495,9 +512,6 @@ function initFlow() {
   step = 0;
 
   flow = patient.ageDays < 60 ? infantFlow : childFlow;
-  flow = patient.ageDays < 60
-    ? infantFlow
-    : childFlow;
 
   next();
 }
@@ -673,6 +687,15 @@ async function showPatientList() {
 // RESULT
 // ==========================
 async function result() {
+  if (isProcessing) {
+    console.warn("🚫 BLOCKED duplicate result()");
+    return;
+  }
+
+  isProcessing = true;
+
+  // 🔒 HARD FREEZE STEP
+  step = flow.length;
 
 render(card(`<h2>Processing...</h2>`));
 await new Promise(r => setTimeout(r, 50));
@@ -704,11 +727,6 @@ if (!Array.isArray(results)) {
   // prioritize severity
   results = prioritize(results);
 
-  // SAVE
-  // const record = await createPatient({
-  //   ...patient,
-  //   classifications: results
-  // }, true);
  const soap = buildSOAP(patient, results);
 
 let record;
@@ -720,6 +738,7 @@ if (patient._id) {
   record = {
     ...record,
     ...patient,
+    history: record.history || [],
     classifications: results,
     updatedAt: new Date().toISOString()
   };
@@ -735,18 +754,32 @@ if (patient._id) {
 // 🔒 ALWAYS APPEND HISTORY
 record.history = record.history || [];
 
+
 const doctorName = prompt("Doctor Name:");
 const signature = prompt("Signature:");
 
-record.history.push({
-  date: new Date().toISOString(),
-  soap,
-  doctor: {
-    name: doctorName || "Unknown",
-    signature: signature || "-"
-  },
-  locked: true
-});
+
+if (isMeaningfulSOAP(soap)) {
+  const last = record.history[record.history.length - 1];
+
+  const isDuplicate =
+    last &&
+    last.soap &&
+    JSON.stringify(last.soap) === JSON.stringify(soap);
+
+  if (!isDuplicate) {
+    record.history.push({
+      date: new Date().toISOString(),
+      soap,
+      doctor: {
+        name: doctorName || "Unknown",
+        signature: signature || "-"
+      },
+      locked: true
+    });
+  }
+
+}
 
 await savePatient(record);
 
@@ -754,6 +787,8 @@ await savePatient(record);
   patient = { ...record };
 
   render(buildResultUI(results));
+    isProcessing = false;
+
 }
 
 // ==========================
@@ -847,7 +882,7 @@ function buildResultUI(results) {
 
   return card(`
     <h2>Assessment Result</h2>
-
+    <p><strong>Patient:</strong> ${patient.name || "-"}</p>
     <p><strong>Age:</strong> ${patient.ageDays} days</p>
     <p><strong>Weight:</strong> ${patient.weight} kg</p>
 
