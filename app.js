@@ -781,8 +781,9 @@ function ans(value) {
       patient.convulsions ||
       patient.lethargic
     ) {
-      step = flow.length;
-      return next();
+      // step = flow.length;
+      // return next();
+      patient.hasDangerSigns = true; 
     }
   }
 
