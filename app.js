@@ -109,7 +109,8 @@ screen.addEventListener("click", async (e) => {
       <div class="section">
         <h3>Basic Info</h3>
         <p><strong>Name:</strong> ${p.name || "-"}</p>
-        <p><strong>Age:</strong> ${p.ageDays || "-"} days</p>
+        <p><strong>DOB:</strong> ${p.dob || "-"}</p>
+        <p><strong>Age:</strong> ${formatAgeYMD(p.ageDays)}</p>
         <p><strong>Weight:</strong> ${p.weight || "-"} kg</p>
       </div>
 
