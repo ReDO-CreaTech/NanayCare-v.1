@@ -131,51 +131,63 @@ screen.addEventListener("click", async (e) => {
 
       <div class="actions">
         <button data-action="records">Back</button>
-        <button data-action="edit" data-id="${p._id}">Edit</button>
-        <button data-action="restart">New</button>
+        <button data-action="reassess" data-id="${p._id}">New Assessment</button>
+        <button data-action="restart">Exit</button>
         <button onclick="printRecord()">Print</button>
       </div>
     `));
     }
 
-    if (action === "edit") {
-      const id = e.target.dataset.id;
-      const p = await getPatient(id);
 
-      patient = p;
+    if (action === "reassess") {
+  const id = e.target.dataset.id;
+  const p = await getPatient(id);
 
-      render(card(`
-        <h2>Edit Patient</h2>
+  if (!p) return alert("Patient not found");
 
-        <input id="name" value="${p.name || ""}" placeholder="Name">
-        <input id="age" type="number" value="${p.ageDays || ""}" placeholder="Age (days)">
-        <input id="weight" type="number" value="${p.weight || ""}" placeholder="Weight">
+  patient = { ...p };
 
-        <textarea id="note" placeholder="Doctor notes..." style="
-    background:#f8fafc;
-    border-left:4px solid #2563eb;
-    padding:10px;
-    border-radius:8px;
-    margin-top:10px;
-    width: 100%;
-    height: 80px;
-  "></textarea>
-        <input id="doctorName" placeholder="Doctor Name">
-        <input id="doctorSignature" placeholder="Signature (type full name)">
+  return initFlow(); // 🔥 reuse flow
+}
 
-        <button data-action="update">Save Changes</button>
-        <button data-action="records">Cancel</button>
-      `));
-    }
+  //   if (action === "edit") {
+  //     const id = e.target.dataset.id;
+  //     const p = await getPatient(id);
 
-    if (action === "update") {
-      const updated = {
-        ...patient, // KEEP _id and _rev
-        name: document.getElementById("name").value,
-        ageDays: Number(document.getElementById("age").value),
-        weight: Number(document.getElementById("weight").value),
-        updatedAt: new Date().toISOString()
-      };
+  //     patient = p;
+
+  //     render(card(`
+  //       <h2>Edit Patient</h2>
+
+  //       <input id="name" value="${p.name || ""}" placeholder="Name">
+  //       <input id="age" type="number" value="${p.ageDays || ""}" placeholder="Age (days)">
+  //       <input id="weight" type="number" value="${p.weight || ""}" placeholder="Weight">
+
+  //       <textarea id="note" placeholder="Doctor notes..." style="
+  //   background:#f8fafc;
+  //   border-left:4px solid #2563eb;
+  //   padding:10px;
+  //   border-radius:8px;
+  //   margin-top:10px;
+  //   width: 100%;
+  //   height: 80px;
+  // "></textarea>
+  //       <input id="doctorName" placeholder="Doctor Name">
+  //       <input id="doctorSignature" placeholder="Signature (type full name)">
+
+  //       <button data-action="update">Save Changes</button>
+  //       <button data-action="records">Cancel</button>
+  //     `));
+  //   }
+
+  //   if (action === "update") {
+  //     const updated = {
+  //       ...patient, // KEEP _id and _rev
+  //       name: document.getElementById("name").value,
+  //       ageDays: Number(document.getElementById("age").value),
+  //       weight: Number(document.getElementById("weight").value),
+  //       updatedAt: new Date().toISOString()
+  //     };
 
       // 🔥 CRITICAL: timeline history
   const note = document.getElementById("note").value;
