@@ -679,6 +679,35 @@ const name = appMode === "worker"
   patient.ageDays = ageDays;
   patient.weight = weight;
 
+
+  // ==========================
+// LOCATION CAPTURE (ADD)
+// ==========================
+try {
+  const loc = await getSmartLocation();
+
+  patient.location = {
+    lat: loc.lat,
+    lng: loc.lng,
+    accuracy: loc.accuracy || null,
+    source: loc.source,
+
+    city: loc.city || null,
+    region: loc.region || null,
+    country: loc.country || null,
+
+    // fake geohash for now (replace later)
+    geoHash: loc.lat && loc.lng
+      ? `${loc.lat.toFixed(2)},${loc.lng.toFixed(2)}`
+      : null,
+
+    timestamp: new Date().toISOString()
+  };
+
+} catch (e) {
+  console.warn("Location failed:", e);
+}
+
   initFlow();
 }
 // ==========================
@@ -945,7 +974,7 @@ async function result() {
   const soap = buildSOAP(patient, results);
 
   // ==========================
-// ANALYTICS BLOCK (ADD ONLY)
+// ANALYTICS BLOCK 
 // ==========================
 const analytics = {
   timestamp: new Date().toISOString(),
