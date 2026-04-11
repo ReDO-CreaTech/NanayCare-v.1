@@ -1049,6 +1049,24 @@ patient.analytics = analytics;
     }
 
     await savePatient(record);
+
+    // ==========================
+// CREATE HEALTH EVENT (ADD)
+// ==========================
+await createHealthEvent({
+  patientId: patient._id,
+
+  timestamp: analytics.timestamp,
+  ageGroup: analytics.ageGroup,
+  severity: analytics.severity,
+  classifications: analytics.classifications,
+  hasDangerSigns: analytics.hasDangerSigns,
+  visitType: analytics.visitType,
+  outcome: analytics.outcome,
+
+  location: patient.location || null
+});
+
     patient = { ...record };
 
   } else {
