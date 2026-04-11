@@ -1345,29 +1345,53 @@ window.addEventListener("load", () => {
 async function getSmartLocation() {
   let loc = null;
 
-  // 1. GPS
+  // ==========================
+  // 1. TRY GPS
+  // ==========================
   try {
     loc = await getGPSLocation();
-  } catch {}
+  } catch (e) {
+    console.warn("GPS failed:", e);
+  }
 
-  // 2. IP fallback
+  // ==========================
+  // 2. TRY IP FALLBACK
+  // ==========================
   if (!loc) {
     try {
       loc = await getIPLocation();
-    } catch {}
+    } catch (e) {
+      console.warn("IP failed:", e);
+    }
   }
 
-  // 3. If we have coordinates → enrich with place names
+  // ==========================
+  // 3. IF WE HAVE LAT/LNG → ENRICH (YOUR CODE GOES HERE)
+  // ==========================
   if (loc?.lat && loc?.lng) {
     const place = await reverseGeocode(loc.lat, loc.lng);
 
+    const finalLoc = { ...loc, ...place };
+
+    saveLastLocation(finalLoc); // ✅ cache it
+
+    return finalLoc;
+  }
+
+  // ==========================
+  // 4. OFFLINE CACHE FALLBACK (YOUR CODE GOES HERE)
+  // ==========================
+  const cached = getLastLocation();
+  if (cached) {
     return {
-      ...loc,
-      ...place
+      ...cached,
+      source: "cache"
     };
   }
 
-  // 4. Final fallback
+  // ==========================
+  // 5. FINAL HARD FALLBACK
+  // ==========================
   return {
     lat: null,
     lng: null,
