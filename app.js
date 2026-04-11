@@ -584,21 +584,7 @@ function start() {
 // ==========================
 // INTAKE
 // ==========================
-// function intake() {
-//   render(card(`
-//     <h2>Patient Intake</h2>
 
-//     <input id="firstName" placeholder="First Name">
-//     <input id="lastName" placeholder="Surname">
-//     <input id="dob" type="date" placeholder="Date of birth">
-//     <input id="age" type="number" placeholder="Age (days)" readonly>
-//     <input id="weight" type="number" placeholder="Weight (kg)">
-
-//     ${button("Next", "next-intake", "primary")}
-//     ${button("Records", "records")}
-//   `));
-// }
-// ${renderModeSwitch()}
 function intake() {
   setScreen("intake");
   render(card(`
@@ -679,6 +665,7 @@ const name = appMode === "worker"
   patient.ageDays = ageDays;
   patient.weight = weight;
   patient.startTime = Date.now();
+  patient.patientId = patient._id || patient.patientId || crypto.randomUUID();
 
 
   // ==========================
