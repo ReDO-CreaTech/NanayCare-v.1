@@ -671,31 +671,40 @@ const name = appMode === "worker"
   // ==========================
 // LOCATION CAPTURE (ADD)
 // ==========================
+// ==========================
+// LOCATION CAPTURE (SAFE FIX)
+// ==========================
+let loc = null;
+
 try {
-  const loc = await getSmartLocation();
-
-  patient.location = {
-    lat: loc.lat,
-    lng: loc.lng,
-    accuracy: loc.accuracy || null,
-    source: loc.source,
-
-    city: loc.city || null,
-    region: loc.region || null,
-    country: loc.country || null,
-
-    // fake geohash for now (replace later)
-    geoHash: loc.lat && loc.lng
-      ? `${loc.lat.toFixed(2)},${loc.lng.toFixed(2)}`
-      : null,
-
-    timestamp: new Date().toISOString()
-  };
-
+  if (typeof getSmartLocation === "function") {
+    loc = await getSmartLocation();
+  }
 } catch (e) {
   console.warn("Location failed:", e);
 }
 
+// ✅ NEVER ALLOW undefined
+loc = loc || {};
+
+const safeLoc = {
+  lat: loc.lat ?? 0,
+  lng: loc.lng ?? 0,
+  city: loc.city ?? "Unknown",
+  region: loc.region ?? "Unknown",
+  country: loc.country ?? "Unknown",
+  accuracy: loc.accuracy ?? null,
+  source: loc.source || "fallback"
+};
+
+patient.location = {
+  ...safeLoc,
+  geoHash: safeLoc.lat && safeLoc.lng
+    ? `${safeLoc.lat.toFixed(2)},${safeLoc.lng.toFixed(2)}`
+    : null,
+  timestamp: new Date().toISOString()
+};
+console.log("FINAL LOCATION:", patient.location);
   initFlow();
 }
 // ==========================
@@ -1330,95 +1339,66 @@ window.addEventListener("load", () => {
 // ==========================
 // Locattion Feature for Heatmaps
 // ==========================
-//Engine
-// async function getGPS() {
-//   return new Promise((resolve, reject) => {
-//     navigator.geolocation.getCurrentPosition(resolve, reject, {
-//       enableHighAccuracy: true,
-//       timeout: 8000,
-//       maximumAge: 0
-//     });
-//   });
-// }
-// //GPS
-// async function getGPSLocation() {
-//   const pos = await getGPS();
+async function getSmartLocation() {
+  // 1. Try GPS
+  try {
+    const gps = await getGPSLocation();
+    if (gps?.lat && gps?.lng) return gps;
+  } catch (e) {
+    console.warn("GPS failed:", e);
+  }
 
-//   return {
-//     lat: pos.coords.latitude,
-//     lng: pos.coords.longitude,
-//     accuracy: pos.coords.accuracy,
-//     source: "gps"
-//   };
-// }
-// //IP fallback
-// async function getIPLocation() {
-//   const res = await fetch("https://ipapi.co/json/");
-//   const ip = await res.json();
+  // 2. Try IP fallback
+  try {
+    const ip = await getIPLocation();
+    if (ip?.lat && ip?.lng) return ip;
+  } catch (e) {
+    console.warn("IP fallback failed:", e);
+  }
 
-//   return {
-//     lat: ip.latitude,
-//     lng: ip.longitude,
-//     city: ip.city,
-//     region: ip.region,
-//     country: ip.country_name,
-//     accuracy: null,
-//     source: "ip"
-//   };
-// }
+  // 3. Manual (if UI exists)
+  const manual = getManualLocation();
+  if (manual?.city || manual?.text) {
+    return {
+      lat: null,
+      lng: null,
+      city: manual.city || null,
+      region: manual.district || null,
+      country: null,
+      source: "manual"
+    };
+  }
 
-// //Manual location
-
-// function getManualLocation() {
-//   const city = document.getElementById("city")?.value;
-//   const district = document.getElementById("district")?.value;
-//   const landmark = document.getElementById("landmark")?.value;
-
-//   return {
-//     city,
-//     district,
-//     landmark,
-//     text: `${landmark || ""} ${district || ""} ${city || ""}`.trim(),
-//     source: "manual"
-//   };
-// }
-
-// //Orchestrate
-// async function getSmartLocation() {
-//   // 1. Try GPS
-//   try {
-//     return await getGPSLocation();
-//   } catch (e) {
-//     console.warn("GPS failed:", e);
-//   }
-
-//   // 2. Try IP fallback
-//   try {
-//     return await getIPLocation();
-//   } catch (e) {
-//     console.warn("IP fallback failed:", e);
-//   }
-
-//   // 3. Force manual (last resort)
-//   return getManualLocation();
-// }
+  // 4. HARD FALLBACK (NEVER NULL AGAIN)
+  return {
+    lat: 0,
+    lng: 0,
+    city: "Unknown",
+    region: "Unknown",
+    country: "Unknown",
+    source: "fallback"
+  };
+}
 
 
+// const loc = await getSmartLocation();
+// const safeLoc = {
+//   lat: loc.lat ?? 0,
+//   lng: loc.lng ?? 0,
+//   city: loc.city ?? "Unknown",
+//   region: loc.region ?? "Unknown",
+//   country: loc.country ?? "Unknown",
+//   accuracy: loc.accuracy ?? null,
+//   source: loc.source
+// };
 
-
-// function normalize(lat, lng) {
-//   return {
-//     lat: Number(lat.toFixed(4)),
-//     lng: Number(lng.toFixed(4))
-//   };
-// }
-
-
-
-
-
-
-
+// patient.location = {
+//   ...safeLoc,
+//   geoHash: safeLoc.lat && safeLoc.lng
+//     ? `${safeLoc.lat.toFixed(2)},${safeLoc.lng.toFixed(2)}`
+//     : null,
+//   timestamp: new Date().toISOString()
+// };
 
 
 
