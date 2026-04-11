@@ -944,6 +944,30 @@ async function result() {
 
   const soap = buildSOAP(patient, results);
 
+  // ==========================
+// ANALYTICS BLOCK (ADD ONLY)
+// ==========================
+const analytics = {
+  timestamp: new Date().toISOString(),
+
+  ageGroup: patient.ageDays < 60 ? "infant" : "child",
+
+  severity: results[0]?.level || "UNKNOWN",
+
+  classifications: results.map(r => r.label),
+
+  hasDangerSigns: !!patient.hasDangerSigns,
+
+  visitType: patient._id ? "followup" : "new",
+
+  outcome: "unknown", // keep simple for now
+
+  location: patient.location || null
+};
+
+// attach to patient
+patient.analytics = analytics;
+
   let record = null;
 
   // ==========================
