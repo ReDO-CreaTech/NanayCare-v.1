@@ -678,6 +678,7 @@ const name = appMode === "worker"
   patient.dob = dob;
   patient.ageDays = ageDays;
   patient.weight = weight;
+  patient.startTime = Date.now();
 
 
   // ==========================
@@ -1050,11 +1051,9 @@ patient.analytics = analytics;
 
     await savePatient(record);
 
-    // ==========================
-// CREATE HEALTH EVENT (ADD)
+  
 // ==========================
-// ==========================
-// CREATE HEALTH EVENT (UPGRADED)
+// CREATE HEALTH EVENT 
 // ==========================
 await createHealthEvent({
   patientId: patient._id,
