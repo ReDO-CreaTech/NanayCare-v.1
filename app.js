@@ -688,8 +688,8 @@ try {
 loc = loc || {};
 
 const safeLoc = {
-  lat: loc.lat ?? 0,
-  lng: loc.lng ?? 0,
+  lat: typeof loc.lat === "number" ? loc.lat : null,
+  lng: typeof loc.lng === "number" ? loc.lng : null,
   city: loc.city ?? "Unknown",
   region: loc.region ?? "Unknown",
   country: loc.country ?? "Unknown",
@@ -699,7 +699,8 @@ const safeLoc = {
 
 patient.location = {
   ...safeLoc,
-  geoHash: safeLoc.lat && safeLoc.lng
+  geoHash:
+  safeLoc.lat !== null && safeLoc.lng !== null
     ? `${safeLoc.lat.toFixed(2)},${safeLoc.lng.toFixed(2)}`
     : null,
   timestamp: new Date().toISOString()
@@ -1118,6 +1119,8 @@ const healthEvent = {
     : null
 };
 
+console.log("FINAL LOCATION:", patient.location);
+
 console.log("📊 HEALTH EVENT:", healthEvent);
 
 await createHealthEvent(healthEvent);
@@ -1335,12 +1338,12 @@ window.addEventListener("load", () => {
   }
 });
 
+// ==========================
+// Geo SamrtLocation
+// ==========================
 
-// ==========================
-// Locattion Feature for Heatmaps
-// ==========================
 async function getSmartLocation() {
-  // 1. Try GPS
+  // 1. GPS (best)
   try {
     const gps = await getGPSLocation();
     if (gps?.lat && gps?.lng) return gps;
@@ -1348,31 +1351,18 @@ async function getSmartLocation() {
     console.warn("GPS failed:", e);
   }
 
-  // 2. Try IP fallback
+  // 2. IP fallback
   try {
     const ip = await getIPLocation();
     if (ip?.lat && ip?.lng) return ip;
   } catch (e) {
-    console.warn("IP fallback failed:", e);
+    console.warn("IP failed:", e);
   }
 
-  // 3. Manual (if UI exists)
-  const manual = getManualLocation();
-  if (manual?.city || manual?.text) {
-    return {
-      lat: null,
-      lng: null,
-      city: manual.city || null,
-      region: manual.district || null,
-      country: null,
-      source: "manual"
-    };
-  }
-
-  // 4. HARD FALLBACK (NEVER NULL AGAIN)
+  // 3. FINAL fallback
   return {
-    lat: 0,
-    lng: 0,
+    lat: null,
+    lng: null,
     city: "Unknown",
     region: "Unknown",
     country: "Unknown",
@@ -1381,25 +1371,50 @@ async function getSmartLocation() {
 }
 
 
-// const loc = await getSmartLocation();
-// const safeLoc = {
-//   lat: loc.lat ?? 0,
-//   lng: loc.lng ?? 0,
-//   city: loc.city ?? "Unknown",
-//   region: loc.region ?? "Unknown",
-//   country: loc.country ?? "Unknown",
-//   accuracy: loc.accuracy ?? null,
-//   source: loc.source
-// };
+// ==========================
+// IP Fallback
+// ==========================
+async function getIPLocation() {
+  const res = await fetch("https://ipapi.co/json/");
+  const data = await res.json();
 
-// patient.location = {
-//   ...safeLoc,
-//   geoHash: safeLoc.lat && safeLoc.lng
-//     ? `${safeLoc.lat.toFixed(2)},${safeLoc.lng.toFixed(2)}`
-//     : null,
-//   timestamp: new Date().toISOString()
-// };
+  return {
+    lat: data.latitude,
+    lng: data.longitude,
+    city: data.city,
+    region: data.region,
+    country: data.country_name,
+    source: "ip"
+  };
+}
 
+// ==========================
+// GPS
+// ==========================
+function getGPSLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      return reject("Geolocation not supported");
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        resolve({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+          source: "gps"
+        });
+      },
+      (err) => reject(err),
+      {
+        enableHighAccuracy: true,
+        timeout: 8000,
+        maximumAge: 0
+      }
+    );
+  });
+}
 
 
 // ==========================
