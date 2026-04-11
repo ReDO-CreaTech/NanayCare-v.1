@@ -1372,6 +1372,8 @@ async function getSmartLocation() {
     const place = await reverseGeocode(loc.lat, loc.lng);
 
     const finalLoc = { ...loc, ...place };
+    finalLoc.lat = Number(finalLoc.lat.toFixed(3));
+    finalLoc.lng = Number(finalLoc.lng.toFixed(3));
 
     saveLastLocation(finalLoc); // ✅ cache it
 
