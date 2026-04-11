@@ -1452,7 +1452,21 @@ function getGPSLocation() {
     );
   });
 }
+// ==========================
+// Cache for offline use
+// ==========================
 
+function saveLastLocation(loc) {
+  localStorage.setItem("lastLocation", JSON.stringify(loc));
+}
+
+function getLastLocation() {
+  try {
+    return JSON.parse(localStorage.getItem("lastLocation"));
+  } catch {
+    return null;
+  }
+}
 
 // ==========================
 // INIT
