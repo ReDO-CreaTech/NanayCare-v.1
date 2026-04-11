@@ -1083,6 +1083,21 @@ await createHealthEvent({
 
   isProcessing = false;
 }
+
+async function createHealthEvent(event) {
+  if (!event) return;
+
+  try {
+    // if using PouchDB / CouchDB
+    await db.health_events.add({
+      ...event,
+      createdAt: new Date().toISOString()
+    });
+
+  } catch (e) {
+    console.error("HealthEvent error:", e);
+  }
+}
 // ==========================
 // RESULT UI
 // ==========================
