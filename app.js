@@ -1053,18 +1053,35 @@ patient.analytics = analytics;
     // ==========================
 // CREATE HEALTH EVENT (ADD)
 // ==========================
+// ==========================
+// CREATE HEALTH EVENT (UPGRADED)
+// ==========================
 await createHealthEvent({
   patientId: patient._id,
 
   timestamp: analytics.timestamp,
   ageGroup: analytics.ageGroup,
   severity: analytics.severity,
+
+  primaryClassification: results[0]?.label || "UNKNOWN",
   classifications: analytics.classifications,
+
   hasDangerSigns: analytics.hasDangerSigns,
   visitType: analytics.visitType,
+
   outcome: analytics.outcome,
 
-  location: patient.location || null
+  // 🔥 FLATTENED LOCATION
+  lat: patient.location?.lat || null,
+  lng: patient.location?.lng || null,
+  city: patient.location?.city || null,
+  region: patient.location?.region || null,
+  country: patient.location?.country || null,
+  geoHash: patient.location?.geoHash || null,
+
+  duration: patient.startTime
+    ? Date.now() - patient.startTime
+    : null
 });
 
     patient = { ...record };
@@ -1088,11 +1105,15 @@ async function createHealthEvent(event) {
   if (!event) return;
 
   try {
-    // if using PouchDB / CouchDB
-    await db.health_events.add({
+    const doc = {
+      _id: "event_" + Date.now(), // simple unique id
+
       ...event,
+
       createdAt: new Date().toISOString()
-    });
+    };
+
+    await eventsDB.put(doc);
 
   } catch (e) {
     console.error("HealthEvent error:", e);
