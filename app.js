@@ -1022,6 +1022,7 @@ patient.analytics = analytics;
         classifications: results
       });
     }
+    
 
     record.history = record.history || [];
 
@@ -1090,6 +1091,58 @@ await createHealthEvent({
     console.log("Public mode → not saving");
     patient.classifications = results;
   }
+      
+
+
+/////DDDDDEEEEEEBBUUGGGGG
+const healthEvent = {
+  patientId: patient._id,
+
+  timestamp: analytics.timestamp,
+  ageGroup: analytics.ageGroup,
+  severity: analytics.severity,
+
+  primaryClassification: results[0]?.label || "UNKNOWN",
+  classifications: analytics.classifications,
+
+  hasDangerSigns: analytics.hasDangerSigns,
+  visitType: analytics.visitType,
+
+  outcome: analytics.outcome,
+
+  lat: patient.location?.lat || null,
+  lng: patient.location?.lng || null,
+  city: patient.location?.city || null,
+  region: patient.location?.region || null,
+  country: patient.location?.country || null,
+  geoHash: patient.location?.geoHash || null,
+
+  duration: patient.startTime
+    ? Date.now() - patient.startTime
+    : null
+};
+
+console.log("📊 HEALTH EVENT:", healthEvent);
+
+await createHealthEvent(healthEvent);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   // ==========================
   // ✅ ALWAYS RUN UI
