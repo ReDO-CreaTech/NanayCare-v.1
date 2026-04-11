@@ -1343,23 +1343,31 @@ window.addEventListener("load", () => {
 // ==========================
 
 async function getSmartLocation() {
-  // 1. GPS (best)
+  let loc = null;
+
+  // 1. GPS
   try {
-    const gps = await getGPSLocation();
-    if (gps?.lat && gps?.lng) return gps;
-  } catch (e) {
-    console.warn("GPS failed:", e);
-  }
+    loc = await getGPSLocation();
+  } catch {}
 
   // 2. IP fallback
-  try {
-    const ip = await getIPLocation();
-    if (ip?.lat && ip?.lng) return ip;
-  } catch (e) {
-    console.warn("IP failed:", e);
+  if (!loc) {
+    try {
+      loc = await getIPLocation();
+    } catch {}
   }
 
-  // 3. FINAL fallback
+  // 3. If we have coordinates → enrich with place names
+  if (loc?.lat && loc?.lng) {
+    const place = await reverseGeocode(loc.lat, loc.lng);
+
+    return {
+      ...loc,
+      ...place
+    };
+  }
+
+  // 4. Final fallback
   return {
     lat: null,
     lng: null,
@@ -1370,6 +1378,35 @@ async function getSmartLocation() {
   };
 }
 
+// ==========================
+// Reverse Geocoding API
+// ==========================
+
+async function reverseGeocode(lat, lng) {
+  try {
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+    );
+
+    const data = await res.json();
+
+    const addr = data.address || {};
+
+    return {
+      city: addr.city || addr.town || addr.village || "Unknown",
+      region: addr.state || addr.region || "Unknown",
+      country: addr.country || "Unknown"
+    };
+
+  } catch (e) {
+    console.warn("Reverse geocode failed:", e);
+    return {
+      city: "Unknown",
+      region: "Unknown",
+      country: "Unknown"
+    };
+  }
+}
 
 // ==========================
 // IP Fallback
