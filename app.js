@@ -148,8 +148,8 @@ const btn = e.target.closest("button[data-action]");
     <div class="report-header">
       <img src="ravenbilLogo.png" class="logoRender">
       <div class="company">
-        <h2>RAVENBIL HERRERA</h2>
-        <p>Research and Experimental Development in Health Sciences</p>
+        <h2>RAVENBIL</h2>
+        <p>Research and Experimental Development in Engineering and Technology</p>
       </div>
     </div>
 
