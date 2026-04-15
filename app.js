@@ -1056,33 +1056,35 @@ patient.analytics = analytics;
 // ==========================
 // CREATE HEALTH EVENT 
 // ==========================
-await createHealthEvent({
-  patientId: patient._id,
+// await createHealthEvent({
+//   patientId: patient._id,
 
-  timestamp: analytics.timestamp,
-  ageGroup: analytics.ageGroup,
-  severity: analytics.severity,
+//   timestamp: analytics.timestamp,
+//   ageGroup: analytics.ageGroup,
+//   severity: analytics.severity,
 
-  primaryClassification: results[0]?.label || "UNKNOWN",
-  classifications: analytics.classifications,
+//   primaryClassification: results[0]?.label || "UNKNOWN",
+//   classifications: analytics.classifications,
 
-  hasDangerSigns: analytics.hasDangerSigns,
-  visitType: analytics.visitType,
+//   hasDangerSigns: analytics.hasDangerSigns,
+//   visitType: analytics.visitType,
 
-  outcome: analytics.outcome,
+//   outcome: analytics.outcome,
 
-  // 🔥 FLATTENED LOCATION
-  lat: patient.location?.lat || null,
-  lng: patient.location?.lng || null,
-  city: patient.location?.city || null,
-  region: patient.location?.region || null,
-  country: patient.location?.country || null,
-  geoHash: patient.location?.geoHash || null,
+//   // 🔥 FLATTENED LOCATION
+//   lat: patient.location?.lat || null,
+//   lng: patient.location?.lng || null,
+//   city: patient.location?.city || null,
+//   region: patient.location?.region || null,
+//   country: patient.location?.country || null,
+//   geoHash: patient.location?.geoHash || null,
 
-  duration: patient.startTime
-    ? Date.now() - patient.startTime
-    : null
-});
+//   duration: patient.startTime
+//     ? Date.now() - patient.startTime
+//     : null
+// });
+
+// await createHealthEvent(healthEvent);
 
     patient = { ...record };
 
@@ -1126,7 +1128,7 @@ console.log("FINAL LOCATION:", patient.location);
 
 console.log("📊 HEALTH EVENT:", healthEvent);
 
-await createHealthEvent(healthEvent);
+
 
 
 /////////////////////////////////////////////////////////////
@@ -1161,23 +1163,25 @@ function hideSync() {
   // ==========================
   // ✅ ALWAYS RUN UI
   // ==========================
-  setScreen("result");
-  render(buildResultUI(results));
+ // ✅ SHOW RESULT IMMEDIATELY
+setScreen("result");
+render(buildResultUI(results));
 
-  isProcessing = false;
+isProcessing = false; // unlock UI EARLY
+
+// ✅ SYNC IN BACKGROUND (DO NOT BLOCK UI)
+createHealthEvent(healthEvent);
 }
 
 async function createHealthEvent(event) {
   if (!event) return;
 
   try {
+    showSync();
 
-   showSync();
     const doc = {
-      _id: "event_" + Date.now(), // simple unique id
-
+      _id: "event_" + Date.now(),
       ...event,
-
       createdAt: new Date().toISOString()
     };
 
@@ -1185,11 +1189,9 @@ async function createHealthEvent(event) {
 
   } catch (e) {
     console.error("HealthEvent error:", e);
-  }finally {
-    setTimeout(hideSync, 800); // ✅ SMALL DELAY FOR UX
+  } finally {
+    setTimeout(hideSync, 500); // smoother UX
   }
-
-  createHealthEvent(healthEvent);
 }
 
 
