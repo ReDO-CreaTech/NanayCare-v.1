@@ -405,3 +405,26 @@ th, td {
   border-bottom:1px dotted #999;
   padding-bottom:2px;
 }
+
+.sync-status {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #0f172a;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 9999;
+  transition: opacity 0.3s ease;
+}
+
+.sync-status.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sync-status.show {
+  opacity: 1;
+}

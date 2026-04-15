@@ -1129,8 +1129,20 @@ console.log("📊 HEALTH EVENT:", healthEvent);
 await createHealthEvent(healthEvent);
 
 
+/////////////////////////////////////////////////////////////
+function showSync() {
+  const el = document.getElementById("syncStatus");
+  if (!el) return;
+  el.classList.remove("hidden");
+  el.classList.add("show");
+}
 
-
+function hideSync() {
+  const el = document.getElementById("syncStatus");
+  if (!el) return;
+  el.classList.remove("show");
+  el.classList.add("hidden");
+}
 
 
 
@@ -1159,6 +1171,8 @@ async function createHealthEvent(event) {
   if (!event) return;
 
   try {
+
+   showSync();
     const doc = {
       _id: "event_" + Date.now(), // simple unique id
 
@@ -1171,8 +1185,21 @@ async function createHealthEvent(event) {
 
   } catch (e) {
     console.error("HealthEvent error:", e);
+  }finally {
+    setTimeout(hideSync, 800); // ✅ SMALL DELAY FOR UX
   }
 }
+
+
+window.addEventListener("online", () => {
+  console.log("Back online → syncing...");
+  showSync();
+
+  // simulate sync (or call real sync function if you have one)
+  setTimeout(() => {
+    hideSync();
+  }, 1500);
+});
 // ==========================
 // RESULT UI
 // ==========================
