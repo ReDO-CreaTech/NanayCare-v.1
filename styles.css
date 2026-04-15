@@ -408,23 +408,23 @@ th, td {
 
 .sync-status {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #0f172a;
+  top: 10px;
+  right: 10px;
+  background: #111;
   color: #fff;
   padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 13px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-  z-index: 9999;
-  transition: opacity 0.3s ease;
-}
-
-.sync-status.hidden {
+  border-radius: 8px;
   opacity: 0;
-  pointer-events: none;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 9999;
 }
 
 .sync-status.show {
   opacity: 1;
+  transform: translateY(0);
+}
+
+.sync-status.hidden {
+  display: none;
 }
