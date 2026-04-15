@@ -1171,7 +1171,7 @@ function hideSync() {
 }
 
 showSync();
-setTimeout(hideSync, 2000);
+setTimeout(hideSync, 10000);
 console.log("SHOW SYNC");
 console.log("HIDE SYNC");
 
