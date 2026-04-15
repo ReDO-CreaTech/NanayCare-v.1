@@ -408,14 +408,21 @@ th, td {
 
 .sync-status {
   position: fixed;
-  top: 10px;
-  right: 10px;
-  background: #111;
-  color: #fff;
-  padding: 10px 14px;
-  border-radius: 8px;
+  bottom: 20px;
+  right: 20px;
+
+  background: #2563eb;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 999px;
+
+  font-size: 14px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+
   opacity: 0;
-  transform: translateY(-10px);
+  transform: translateY(10px);
+  pointer-events: none;
+
   transition: all 0.3s ease;
   z-index: 9999;
 }
@@ -426,5 +433,6 @@ th, td {
 }
 
 .sync-status.hidden {
-  display: none;
+  opacity: 0;
+  transform: translateY(10px);
 }

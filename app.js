@@ -1133,12 +1133,15 @@ console.log("📊 HEALTH EVENT:", healthEvent);
 
 /////////////////////////////////////////////////////////////
 let syncCounter = 0;
+let syncStartTime = 0;
 
 function showSync() {
   const el = document.getElementById("syncStatus");
   if (!el) return;
 
   syncCounter++;
+  syncStartTime = Date.now();
+
   el.classList.remove("hidden");
   el.classList.add("show");
 }
@@ -1150,12 +1153,20 @@ function hideSync() {
   syncCounter = Math.max(0, syncCounter - 1);
 
   if (syncCounter === 0) {
+    const elapsed = Date.now() - syncStartTime;
+
+    // 🔥 ensure visible at least 500ms
+    const delay = Math.max(0, 500 - elapsed);
+
     setTimeout(() => {
       el.classList.remove("show");
       el.classList.add("hidden");
-    }, 300);
+    }, delay);
   }
 }
+
+console.log("SHOW SYNC");
+console.log("HIDE SYNC");
 
 
 
