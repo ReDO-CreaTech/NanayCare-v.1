@@ -1175,6 +1175,10 @@ createHealthEvent(healthEvent);
 
 async function createHealthEvent(event) {
   if (!event) return;
+  if (!eventsDB) {
+  console.warn("eventsDB not ready");
+  return;
+}
 
   try {
     showSync();
