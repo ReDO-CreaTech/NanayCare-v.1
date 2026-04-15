@@ -162,8 +162,8 @@ const btn = e.target.closest("button[data-action]");
   <div class="patient-grid">
 
     <div class="field">
-      <label>Record ID:</label>
-      <span>${p._id || "-"}</span>
+      <label>Patient ID:</label>
+      <span>${p.patientId || "-"}</span>
     </div>
 
     <div class="field">
@@ -186,6 +186,7 @@ const btn = e.target.closest("button[data-action]");
       <h3>Basic Info</h3>
 <div class="patient-grid">
 
+
   <div class="field">
     <label>Name:</label>
     <span>${p.name || "-"}</span>
@@ -205,6 +206,11 @@ const btn = e.target.closest("button[data-action]");
     <label>Weight:</label>
     <span>${p.weight || "-"} kg</span>
   </div>
+
+  <div class="field">
+  <label>Visit Type:</label>
+  <span>${p.analytics?.visitType || "-"}</span>
+</div>
 
 </div>
     </div>
@@ -365,7 +371,7 @@ function renderModeSwitch() {
 // ==========================
 
 function buildClinicalData(p) {
-  const ignore = ["name", "ageDays", "weight", "classifications", "_id", "history", "createdAt", "updatedAt", "_rev", "dob", "firstName", "lastName"];
+  const ignore = ["name", "ageDays", "weight", "classifications", "_id", "history", "createdAt", "updatedAt", "_rev", "dob", "firstName", "lastName", "location", "patientId",  "startTime", "analytics"]
 
   const formatValue = (v) => {
     if (v === null || v === undefined || v === "") return "—";
@@ -670,9 +676,6 @@ const name = appMode === "worker"
 
   // ==========================
 // LOCATION CAPTURE (ADD)
-// ==========================
-// ==========================
-// LOCATION CAPTURE (SAFE FIX)
 // ==========================
 let loc = null;
 
