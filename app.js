@@ -1140,7 +1140,11 @@ function showSync() {
   if (!el) return;
 
   syncCounter++;
-  syncStartTime = Date.now();
+
+  // only set start time on first sync
+  if (syncCounter === 1) {
+    syncStartTime = Date.now();
+  }
 
   el.classList.remove("hidden");
   el.classList.add("show");
@@ -1155,8 +1159,9 @@ function hideSync() {
   if (syncCounter === 0) {
     const elapsed = Date.now() - syncStartTime;
 
-    // 🔥 ensure visible at least 500ms
-    const delay = Math.max(0, 500 - elapsed);
+    // guarantee visible duration
+    const minVisible = 600;
+    const delay = Math.max(0, minVisible - elapsed);
 
     setTimeout(() => {
       el.classList.remove("show");
@@ -1165,8 +1170,11 @@ function hideSync() {
   }
 }
 
+showSync();
+setTimeout(hideSync, 2000);
 console.log("SHOW SYNC");
 console.log("HIDE SYNC");
+
 
 
 
