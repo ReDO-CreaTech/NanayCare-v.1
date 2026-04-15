@@ -1301,6 +1301,15 @@ function buildResultUI(results) {
   `);
 }
 
+window.addEventListener("online", () => {
+  console.log("Back online → syncing...");
+  showSync();
+
+  // simulate sync (or call real sync function if you have one)
+  setTimeout(() => {
+    hideSync();
+  }, 1500);
+});
 
 // ==========================
 // Progressive Bar
@@ -1521,13 +1530,3 @@ function getLastLocation() {
 // INIT
 // ==========================
 start();
-
-window.addEventListener("online", () => {
-  console.log("Back online → syncing...");
-  showSync();
-
-  // simulate sync (or call real sync function if you have one)
-  setTimeout(() => {
-    hideSync();
-  }, 1500);
-});
