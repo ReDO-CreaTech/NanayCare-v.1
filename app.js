@@ -1189,6 +1189,7 @@ async function createHealthEvent(event) {
     setTimeout(hideSync, 800); // ✅ SMALL DELAY FOR UX
   }
 }
+createHealthEvent(healthEvent);
 
 
 // ==========================
